@@ -47,6 +47,8 @@ extern "C" {
 #include "ci_platform_cfg.h"
 #include "events.h"
 #include "version.h"
+#include "ci_perfids.h"
+#include "ci_msgids.h"
 #include <termio.h>
 #include <stdlib.h>
 
