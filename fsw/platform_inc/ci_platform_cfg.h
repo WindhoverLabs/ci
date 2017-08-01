@@ -1,69 +1,125 @@
-/*==============================================================================
-** File Name: ci_platform_cfg.h
-**
-** Title:     CI Platform Config File
-**
-** $Author: $
-** $Revision: $
-** $Date:  $
-**
-** Purpose:   To define CI platform config specific info including
-**            table #defines.
-**
-** Functions Contained:
-**    None
-**
-** Limitations, Assumptions, External Events, and Notes:
-**  1.   None
-**
-** Modification History:
-**   MM/DD/YY  SCR/SDR     Author          DESCRIPTION
-**   --------  ----------  -------------   -----------------------------
-**   mm/dd/yy  $$$SCRxxxx  C. Writer       Build #: Code Started
-**
-**
-**==============================================================================
-*/
+    
+#ifndef CI_PLATFORM_CFG_H
+#define CI_PLATFORM_CFG_H
 
-#ifndef _CI_PLATFORM_CFG_
-#define _CI_PLATFORM_CFG_
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*
-** Pragmas
+** ci Platform Configuration Parameter Definitions
 */
 
-/*
-** Include Files
+/** \brief Mission specific version number for CI application
+**  
+**  \par Description:
+**       An application version number consists of four parts:
+**       major version number, minor version number, revision
+**       number and mission specific revision number. The mission
+**       specific revision number is defined here and the other
+**       parts are defined in "ci_version.h".
+**
+**  \par Limits:
+**       Must be defined as a numeric value that is greater than
+**       or equal to zero.
 */
+#define CI_MISSION_REV                (0)
 
-/*
-** Local Defines
+/** \brief Pipe depth for the Scheduler pipe 
+**
+**  \par Limits:
+**       minimum of 1, max of CFE_SB_MAX_PIPE_DEPTH.
 */
+#define CI_SCH_PIPE_DEPTH             (2)
 
-#define CI_ILOAD_MAX_ENTRIES   1
-#define CI_CONFIG_FILENAME     "/cf/apps/ci_config.tbl"
-#define CI_WAKEUP_TIMEOUT	   1000
-
-/*
-** Local Structure Declarations
+/** \brief Pipe name for the Scheduler pipe 
+**
+**  \par Limits:
+**       Note, this name must fit in OS_MAX_API_NAME.
 */
+#define CI_SCH_PIPE_NAME              ("CI_SCH_PIPE")
 
-/*
-** External Global Variables
+/** \brief The SB pend behavior type for the Scheduler pipe.
+**
+**  \par Limits:
+**       One of: CFE_SB_POLL, CFE_SB_PEND_FOREVER, or the 
+**       number of milliseconds to wait for a new message (recommended).
+**       Note, using CFE_SB_PEND_FOREVER may cause an unresponsive
+**       application if no messages arrive on this pipe.
 */
+#define CI_SCH_PIPE_PEND_TIME         (2000)
 
-/*
-** Global Variables
+/** \brief The number of WAKEUP messages to reserve on the Scheduler pipe.
+**
+**  \par Limits:
+**       minimum of 1, max limited to CFE_SB_MAX_PIPE_DEPTH-1.  Note the
+**       CI_SCH_PIPE_WAKEUP_RESERVED and CI_SCH_PIPE_SEND_HK_RESERVED
+**       must be less than CI_SCH_PIPE_DEPTH.
 */
+#define CI_SCH_PIPE_WAKEUP_RESERVED   (1)
 
-/*
-** Local Variables
+/** \brief The number of SEND_HK messages to reserve on the Scheduler pipe.
+**
+**  \par Limits:
+**       minimum of 1, max of CFE_SB_MAX_PIPE_DEPTH.  Note the
+**       CI_SCH_PIPE_WAKEUP_RESERVED and CI_SCH_PIPE_SEND_HK_RESERVED
+**       must be less than CI_SCH_PIPE_DEPTH.
 */
+#define CI_SCH_PIPE_SEND_HK_RESERVED  (1)
 
-/*
-** Local Function Prototypes
+/** \brief Pipe depth for the command pipe
+**
+**  \par Limits:
+**       minimum of 1, max of CFE_SB_MAX_PIPE_DEPTH.
 */
+#define CI_CMD_PIPE_DEPTH             (4)
 
-#endif /*_CI_PLATFORM_CFG_*/
+/** \brief Pipe name for the Scheduler pipe 
+**
+**  \par Limits:
+**       Note, this name must fit in OS_MAX_API_NAME.
+*/
+#define CI_CMD_PIPE_NAME              ("CI_CMD_PIPE")
 
-/* ---------- end of file ci_platform_cfg.h ----------*/
+/** \brief Pipe depth for the data pipe 
+**
+**  \par Limits:
+**       minimum of 1, max of CFE_SB_MAX_PIPE_DEPTH.
+*/
+#define CI_DATA_PIPE_DEPTH            (4)
+
+/** \brief Pipe name for the Scheduler pipe 
+**
+**  \par Limits:
+**       Note, this name must fit in OS_MAX_API_NAME.
+*/
+#define CI_DATA_PIPE_NAME             ("CI_DATA_PIPE")
+
+/** \brief The config table default filename
+**
+**  \par Limits:
+**       The length of each string, including the NULL terminator cannot exceed
+**       the #OS_MAX_PATH_LEN value.
+*/
+#define CI_CONFIG_TABLE_FILENAME      ("/cf/apps/ci_config.tbl")
+/** \brief The timeout value, in milliseconds, to wait for ES application startup sync.
+**
+**  \par Limits:
+**       This parameter must be at least 1000 (ms).
+*/
+#define CI_STARTUP_TIMEOUT_MSEC    (1000)
+
+/* TODO:  Add Doxygen markup. */
+#define CI_CUSTOM_DEV_PATH       "/tmp/ttyS0"
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* CI_PLATFORM_CFG_H */
+
+/************************/
+/*  End of File Comment */
+/************************/
+    

@@ -1,111 +1,98 @@
-/*==============================================================================
-** File Name: ci_iloads.c
-**
-** Title:     CI iloads table definition
-**
-** $Author: $
-** $Revision: $
-** $Date:  $
-**
-** Purpose:   To provide the CI iloads table for default data config.
-**
-** Functions Contained:
-**    None
-**
-**
-** Limitations, Assumptions, External Events, and Notes:
-**  1.   None
-**
-** Modification History:
-**   MM/DD/YY  SCR/SDR     Author          DESCRIPTION
-**   --------  ----------  -------------   -----------------------------
-**   mm/dd/yy  $$$SCRxxxx  C. Writer       Build #: Code Started
-**
-**
-**==============================================================================
-*/
 
-#ifndef _CI_CONFIG_
-#define _CI_CONFIG_
-
-#ifdef	__cplusplus
-extern "C" {
-#endif
-
-
-/*
+/************************************************************************
 ** Pragmas
-*/
+*************************************************************************/
 
-/*
-** Include Files
-*/
-#include "app.h"
-#include "tbl.h"
+/************************************************************************
+** Includes
+*************************************************************************/
 #include "cfe_tbl_filedef.h"
-#include "ci_platform_cfg.h"
-#include "ci_mission_cfg.h"
-#include "msg_ids.h"
-#include "cfe_es_msg.h"
-#include "cmd_codes.h"
+#include "ci_tbldefs.h"
 
-/*
+/************************************************************************
 ** Local Defines
+*************************************************************************/
+
+/************************************************************************
+** Local Structure Definitions
+*************************************************************************/
+
+/**
+** \brief The cFE CI config table definition.
+**
+** Content format: ObjName[64], TblName[38], Desc[32], TgtFileName[20], ObjSize
+**    ObjName - variable name of config table, e.g., CI_ConfigDefTbl[]
+**    TblName - app's table name, e.g., CI.CONFIG_TBL, where CI is the same app name
+**              used in cfe_es_startup.scr, and CI_defConfigTbl is the same table
+**              name passed in to CFE_TBL_Register()
+**    Desc - description of table in string format
+**    TgtFileName[20] - table file name, compiled as .tbl file extension
+**    ObjSize - size of the entire table
+**
 */
-
-
-/*
-** Local Structure Declarations
-*/
-
-CFE_TBL_FileDef_t CFE_TBL_FileDef =
+static CFE_TBL_FileDef_t CFE_TBL_FileDef =
 {
-    "ci_ConfigTable", "CI.ci_config", "CI config table",
-    "ci_config.tbl", sizeof(CI_ConfigTable_t)
+    "CI_ConfigTbl", "CI.CONFIG_TBL", "CI default config table",
+    "ci_config.tbl", (sizeof(CI_ConfigTblEntry_t) * CI_CONFIG_TABLE_MAX_ENTRIES)
 };
 
-/*
-** Default CI iLoad table data
-*/
-
-
-CI_ConfigTable_t ci_ConfigTable =
-{
-	0x1ffd,
-	1000,
-	CI_CMD_TYPE_ONE_STEP,
-	CI_CMD_LOG_NONE,
-	{
-		{ CI_CHANNEL_ENABLED, CI_CHANNEL_TYPE_UDP, "0.0.0.0", TRUE, FALSE, 0, 5010, 0, 0},
-		{ CI_CHANNEL_ENABLED, CI_CHANNEL_TYPE_UDP, "0.0.0.0", FALSE, TRUE, FIXHAWK_MAVLINK_IN_MSG_MID, 14555, 0, 0}
-	},
-	{
-		{ CI_CMD_MID, CI_NOP_CC, 			CI_CMD_TYPE_ONE_STEP, {0,0}, 200, CI_CMD_LOG_DEFAULT, CI_CMD_STATE_NA, {0,0} },
-		{ CI_CMD_MID, CI_RESET_STATUS_CC, 	CI_CMD_TYPE_ONE_STEP, {0,0}, 201, CI_CMD_LOG_DEFAULT, CI_CMD_STATE_NA, {0,0} },
-		{ CI_CMD_MID, CI_CMD_ARM, 			CI_CMD_TYPE_ONE_STEP, {0,0}, 202, CI_CMD_LOG_DEFAULT, CI_CMD_STATE_NA, {0,0} },
-		{ CI_CMD_MID, CI_CMD_DISARM, 		CI_CMD_TYPE_ONE_STEP, {0,0}, 203, CI_CMD_LOG_DEFAULT, CI_CMD_STATE_NA, {0,0} },
-		{ FIXHAWK_MAVLINK_IN_MSG_MID,  0,	CI_CMD_TYPE_ONE_STEP, {0,0}, 203, CI_CMD_LOG_NONE,    CI_CMD_STATE_NA, {0,0} }
-	}
-};
-
-/*
+/************************************************************************
 ** External Global Variables
-*/
+*************************************************************************/
 
-/*
+/************************************************************************
 ** Global Variables
-*/
+*************************************************************************/
 
-/*
+/**
+**  \brief Default CI config table data
+*/
+CI_ConfigTblEntry_t CI_ConfigTbl[CI_CONFIG_TABLE_MAX_ENTRIES] =
+{
+    /* Entry 1 */
+    {
+        .iParam = 123
+
+        /* TODO:  Add default values for Config parameters here.
+        **
+        ** Examples: (See example of type declarations in ci_tbldefs.h)
+        **    .cParam   = 7,
+        **    .cParams  = "Init Str Value",
+        **    .ucParam  = 'A',
+        **    .ucParams = "/dev/ttyUSB",
+        **
+        **    .sParam   = -16,
+        **    .sParams  = {-3, -2, -1, 0, 1, 2, 3, 4},
+        **    .usParam  = 16,
+        **    .usParams = {1, 2, 3, 4, 5, 6, 7, 8},
+        **
+        **    .iParam   = -32,
+        **    .iParams  = {-123, -234, 0, 123, 234},
+        **    .uiParam  = -32,
+        **    .uiParams = {123, 234, 345, 456, 678},
+        **
+        **    .fParam  = 32.1234,
+        **    .fParams = {-12.34, 0.0, 12.34},
+        **
+        **    .dParam = 123.456789,
+        **    .dParams = {-123.456789, 0.0, 123.456789}
+        */
+    }
+};
+
+/************************************************************************
 ** Local Variables
-*/
+*************************************************************************/
 
-/*
+/************************************************************************
 ** Local Function Prototypes
-*/
+*************************************************************************/
 
-#ifdef	__cplusplus
-}
-#endif
+/************************************************************************
+** Function Definitions
+*************************************************************************/
 
-#endif /* _CI_CONFIG_ */
+/************************/
+/*  End of File Comment */
+/************************/
+    
