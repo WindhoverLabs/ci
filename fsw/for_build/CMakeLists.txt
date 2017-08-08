@@ -14,7 +14,7 @@ add_airliner_app_def(ci
 
 
 
-add_airliner_app_unit_test(CI-UT
+add_airliner_app_unit_test(ci-ut
     UTASSERT 
     SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/../unit_test/ci_app_test
