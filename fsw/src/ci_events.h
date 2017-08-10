@@ -2,6 +2,9 @@
 #ifndef CI_EVENTS_H
 #define CI_EVENTS_H
 
+#include <termio.h>
+#include <stdlib.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -192,6 +195,8 @@ typedef enum {
     /* TODO:  Add Doxygen markup. */
     CI_LISTENER_CREATE_CHDTASK_ERR_EID,
     CI_CMD_INGEST_ERR_EID,
+	CI_SOCKET_ERR_EID,
+	CI_ENA_INF_EID,
 
 /** \brief <tt> This is a count of all the app events and should not be used. </tt> */
     CI_EVT_CNT
