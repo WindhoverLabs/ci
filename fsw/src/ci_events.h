@@ -198,6 +198,19 @@ typedef enum {
 	CI_SOCKET_ERR_EID,
 	CI_ENA_INF_EID,
 
+	/** \brief <tt> '' </tt>
+	**  \event <tt> '' </tt>
+	**
+	**  \par Type: ERROR
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when the CFS CI Task has
+	**  encountered an issue with a received command
+	**
+	*/
+	CI_CMD_INVALID_EID,
+
 /** \brief <tt> This is a count of all the app events and should not be used. </tt> */
     CI_EVT_CNT
 } CI_EventIds_t;

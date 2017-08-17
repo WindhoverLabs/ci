@@ -9,9 +9,11 @@
 #include <string.h>
 
 #include "cfe.h"
+#include "ccsds.h"
 
 #include "ci_app.h"
 #include "ci_msg.h"
+#include "ci_events.h"
 #include "ci_version.h"
 
 /************************************************************************
@@ -334,6 +336,7 @@ CI_InitApp_Exit_Tag:
 void CI_CleanupCallback()
 {
     CI_CleanupCustom();
+    // TODO: Set child loop guard to false
 }
 
 
@@ -343,6 +346,54 @@ void CI_CleanupCallback()
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+
+boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr)
+{
+	CFE_SB_CmdHdr_t     *CmdHdrPtr;
+	boolean 			bResult = TRUE;
+
+	/* Verify CCSDS version */
+	if (CCSDS_RD_VERS(MsgPtr->Hdr) != 0)
+	{
+		bResult = FALSE;
+		goto CI_ValidateCmd_Exit_Tag;
+	}
+
+	/* Verify secondary header present */
+	if (CCSDS_RD_SHDR(MsgPtr->Hdr) == 0)
+	{
+		bResult = FALSE;
+		goto CI_ValidateCmd_Exit_Tag;
+	}
+
+	/* Verify packet type is cmd */
+	if (CCSDS_RD_TYPE(MsgPtr->Hdr) != CCSDS_CMD)
+	{
+		bResult = FALSE;
+		goto CI_ValidateCmd_Exit_Tag;
+	}
+
+	/* Cast the input pointer to a Cmd Msg pointer */
+	CmdHdrPtr = (CFE_SB_CmdHdr_t *)MsgPtr;
+
+	/* Verify length */
+	// TODO
+
+	/* Verify valid checksum */
+	if (CFE_SB_ValidateChecksum(MsgPtr) == FALSE)
+	{
+		bResult = FALSE;
+		goto CI_ValidateCmd_Exit_Tag;
+	}
+
+CI_ValidateCmd_Exit_Tag:
+	if(bResult == FALSE)
+	{
+		CFE_EVS_SendEvent (CI_CMD_INVALID_EID, CFE_EVS_ERROR, "Rcvd invalid cmd");
+	}
+
+	return bResult;
+}
 
 
 
@@ -386,7 +437,8 @@ void CI_ListenerTaskMain(void)
     {
         MsgSize = CI_MAX_CMD_INGEST;
         CI_ReadMessage(CI_AppData.IngestBuffer, &MsgSize);
-        if(MsgSize > 0) {
+        if(MsgSize > 0)
+        {
             /* If number of bytes received less than max */
             if (MsgSize <= CI_MAX_CMD_INGEST)
             {
@@ -398,6 +450,10 @@ void CI_ListenerTaskMain(void)
                 cmdCode = CFE_SB_GetCmdCode((CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer);
 
                 CI_AppData.HkTlm.IngestMsgCount++;
+
+                boolean cmdv = CI_ValidateCmd((CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer);
+                OS_printf("ValidateCmd: %b\n", cmdv);
+
                 CFE_SB_SendMsg(CI_AppData.IngestBuffer);
                 CFE_ES_PerfLogExit(CI_SOCKET_RCV_PERF_ID);
             }
@@ -412,12 +468,14 @@ void CI_ListenerTaskMain(void)
         }
         OS_TaskDelay(100);
     }
+
+    CFE_ES_ExitChildTask();
 }
     
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* Receive and Process Messages                                    */
+/* Receive and Process CI Messages                                 */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -440,7 +498,7 @@ int32 CI_RcvMsg(int32 iBlocking)
     {
         MsgId = CFE_SB_GetMsgId(MsgPtr);
         switch (MsgId)
-	{
+        {
             case CI_WAKEUP_MID:
                 CI_ProcessNewCmds();
                 CI_ProcessNewData();
