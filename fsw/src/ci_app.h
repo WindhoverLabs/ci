@@ -87,10 +87,24 @@ typedef struct
     /** \brief Housekeeping Telemetry for downlink */
     CI_HkTlm_t  HkTlm;
 
+    /** \brief  */
     uint32          ListenerTaskID;
+
+    /** \brief  */
     int32           ListenerTaskRunStatus;
+
+    /** \brief  */
     uint8           IngestBuffer[CI_MAX_CMD_INGEST];
+
+    /** \brief  */
     CFE_SB_Msg_t    *IngestPointer;
+
+    /** \brief  */
+    boolean			IngestActive;
+
+    /** \brief  */
+    boolean			IngestBehavior;
+
 } CI_AppData_t;
 
 /************************************************************************
@@ -334,6 +348,7 @@ boolean  CI_VerifyCmdLength(CFE_SB_Msg_t* MsgPtr, uint16 usExpectedLen);
 int32  CI_InitListenerTask(void);
 void CI_ListenerTaskMain(void);
 uint32 CI_GetCmdMessage(CFE_SB_Msg_t*);
+boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr);
 
 #ifdef __cplusplus
 }

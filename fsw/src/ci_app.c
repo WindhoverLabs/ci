@@ -336,7 +336,7 @@ CI_InitApp_Exit_Tag:
 void CI_CleanupCallback()
 {
     CI_CleanupCustom();
-    // TODO: Set child loop guard to false
+    CI_AppData.IngestActive = FALSE;
 }
 
 
@@ -350,26 +350,23 @@ void CI_CleanupCallback()
 boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr)
 {
 	CFE_SB_CmdHdr_t     *CmdHdrPtr;
-	boolean 			bResult = TRUE;
+	boolean 			bResult = FALSE;
 
 	/* Verify CCSDS version */
 	if (CCSDS_RD_VERS(MsgPtr->Hdr) != 0)
 	{
-		bResult = FALSE;
 		goto CI_ValidateCmd_Exit_Tag;
 	}
 
 	/* Verify secondary header present */
 	if (CCSDS_RD_SHDR(MsgPtr->Hdr) == 0)
 	{
-		bResult = FALSE;
 		goto CI_ValidateCmd_Exit_Tag;
 	}
 
 	/* Verify packet type is cmd */
 	if (CCSDS_RD_TYPE(MsgPtr->Hdr) != CCSDS_CMD)
 	{
-		bResult = FALSE;
 		goto CI_ValidateCmd_Exit_Tag;
 	}
 
@@ -382,17 +379,26 @@ boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr)
 	/* Verify valid checksum */
 	if (CFE_SB_ValidateChecksum(MsgPtr) == FALSE)
 	{
-		bResult = FALSE;
 		goto CI_ValidateCmd_Exit_Tag;
 	}
 
+	bResult = TRUE;
+
 CI_ValidateCmd_Exit_Tag:
-	if(bResult == FALSE)
-	{
-		CFE_EVS_SendEvent (CI_CMD_INVALID_EID, CFE_EVS_ERROR, "Rcvd invalid cmd");
-	}
+	return bResult;
+}
+
+boolean CI_GetCmdAuthorized(CFE_SB_Msg_t* MsgPtr)
+{
+	boolean 			bResult = TRUE;
+
 
 	return bResult;
+}
+
+void CI_LogCmd(CFE_SB_Msg_t* MsgPtr)
+{
+
 }
 
 
@@ -428,12 +434,14 @@ void CI_ListenerTaskMain(void)
     uint32  i       = 0;
     uint32  MsgSize = 0;
     uint32  iMsg    = 0;
+    CFE_SB_MsgPtr_t CmdMsgPtr;
+    CFE_SB_MsgId_t  CmdMsgId;
 
     CFE_ES_RegisterChildTask();
 
     /* Receive data and place in IngestBuffer */
     /* TODO:  Replace infinite loop with something that will terminate on unload. */
-    while(1)
+    while(CI_AppData.IngestActive == TRUE)
     {
         MsgSize = CI_MAX_CMD_INGEST;
         CI_ReadMessage(CI_AppData.IngestBuffer, &MsgSize);
@@ -442,20 +450,37 @@ void CI_ListenerTaskMain(void)
             /* If number of bytes received less than max */
             if (MsgSize <= CI_MAX_CMD_INGEST)
             {
-                CFE_ES_PerfLogEntry(CI_SOCKET_RCV_PERF_ID);
-                CFE_SB_MsgId_t  msgID = 0;
-                uint16 cmdCode = 0;
+            	CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
 
-                msgID = CFE_SB_GetMsgId((CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer);
-                cmdCode = CFE_SB_GetCmdCode((CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer);
+            	/* Verify validity of cmd */
+				if (CI_ValidateCmd(CmdMsgPtr) == TRUE)
+				{
+					CmdMsgId = CFE_SB_GetMsgId(CmdMsgPtr);
 
-                CI_AppData.HkTlm.IngestMsgCount++;
-
-                boolean cmdv = CI_ValidateCmd((CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer);
-                OS_printf("ValidateCmd: %b\n", cmdv);
-
-                CFE_SB_SendMsg(CI_AppData.IngestBuffer);
-                CFE_ES_PerfLogExit(CI_SOCKET_RCV_PERF_ID);
+					/* Check if cmd is for CI and route if so */
+					if (CI_CMD_MID == CmdMsgId)
+					{
+						CI_ProcessNewAppCmds(CmdMsgPtr); // TODO Is error checking in func enough?
+						CI_LogCmd(CmdMsgPtr);
+					}
+					else
+					{
+						/* Verify cmd is authorized */
+						if (CI_GetCmdAuthorized(CmdMsgPtr) == TRUE)
+						{
+							CFE_ES_PerfLogEntry(CI_SOCKET_RCV_PERF_ID); // need?
+							CI_AppData.HkTlm.IngestMsgCount++;
+							CFE_SB_SendMsg(CI_AppData.IngestBuffer); // Can use variable?
+							CFE_ES_PerfLogExit(CI_SOCKET_RCV_PERF_ID);
+							CI_LogCmd(CmdMsgPtr);
+						}
+					}
+				}
+				else
+				{
+					CI_AppData.HkTlm.usCmdErrCnt++;
+					CFE_EVS_SendEvent (CI_CMD_INVALID_EID, CFE_EVS_ERROR, "Rcvd invalid cmd");
+				}
             }
             else
             {
