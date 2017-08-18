@@ -211,6 +211,32 @@ typedef enum {
 	*/
 	CI_CMD_INVALID_EID,
 
+	/** \brief <tt> '' </tt>
+	**  \event <tt> '' </tt>
+	**
+	**  \par Type: ERROR
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when the command CI has
+	**  received is not authorized to execute.
+	**
+	*/
+	CI_CMD_UNAUTHORIZED_EID,
+
+	/** \brief <tt> '' </tt>
+	**  \event <tt> '' </tt>
+	**
+	**  \par Type: INFORMATION
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when an authorized
+	**  command has timed out.
+	**
+	*/
+	CI_CMD_AUTH_TIMEOUT_EID,
+
 /** \brief <tt> This is a count of all the app events and should not be used. </tt> */
     CI_EVT_CNT
 } CI_EventIds_t;

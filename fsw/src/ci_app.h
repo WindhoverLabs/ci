@@ -38,6 +38,16 @@ extern "C" {
 /************************************************************************
 ** Local Structure Definitions
 *************************************************************************/
+
+/**
+**  \brief CI Operational Data Structure
+*/
+typedef enum
+{
+	BHV_OPTIMISTIC,
+	BHV_PESSIMISTIC,
+} CI_BEHAVIOR;
+
 /**
 **  \brief CI Operational Data Structure
 */
@@ -103,7 +113,7 @@ typedef struct
     boolean			IngestActive;
 
     /** \brief  */
-    boolean			IngestBehavior;
+    CI_BEHAVIOR		IngestBehavior;
 
 } CI_AppData_t;
 
@@ -347,8 +357,75 @@ boolean  CI_VerifyCmdLength(CFE_SB_Msg_t* MsgPtr, uint16 usExpectedLen);
 /* TODO:  Add Doxygen markup. */
 int32  CI_InitListenerTask(void);
 void CI_ListenerTaskMain(void);
-uint32 CI_GetCmdMessage(CFE_SB_Msg_t*);
-boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr);
+
+/************************************************************************/
+/** \brief Validate Command
+**
+**  \par Description
+**       This function validates several parameters of the command.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \param [in]   MsgPtr        A #CFE_SB_Msg_t pointer that
+**                              references the software bus message
+**  \param [in]   MsgSize 		The size of the message from the
+**  							ingest buffer
+**
+**  \returns
+**  TRUE if the command is valid, FALSE if it is not.
+**  \endreturns
+**
+*************************************************************************/
+boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr, uint32 MsgSize);
+
+/************************************************************************/
+/** \brief Get Command Authorization
+**
+**  \par Description
+**       This function verifies if a command is authorized to execute
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \param [in]   MsgPtr        A #CFE_SB_Msg_t pointer that
+**                              references the software bus message
+**
+**  \returns
+**  TRUE if the command is authorized, FALSE if it is not.
+**  \endreturns
+**
+*************************************************************************/
+boolean CI_GetCmdAuthorized(CFE_SB_Msg_t* MsgPtr);
+
+/************************************************************************/
+/** \brief Log Command
+**
+**  \par Description
+**       This function logs execution of the command
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \param [in]   MsgPtr        A #CFE_SB_Msg_t pointer that
+**                              references the software bus message
+**
+*************************************************************************/
+void CI_LogCmd(CFE_SB_Msg_t* MsgPtr);
+
+/************************************************************************/
+/** \brief Process Timeouts
+**
+**  \par Description
+**       This function decrements all authorized commands
+**       timeout counters and resets their state to unauthorized
+**       when it hits zero.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+*************************************************************************/
+void CI_ProcessTimeouts(void);
 
 #ifdef __cplusplus
 }

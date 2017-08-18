@@ -121,7 +121,7 @@ typedef struct
 
 /** 
 **  \brief Cmd data row for config table
-**
+**  All data affiliated with commmands known to CI
 */
 typedef struct
 {
@@ -131,6 +131,7 @@ typedef struct
     uint8	 state;
     int32	 timeout;
     int	 RouteCount;
+    int	 log;
 } CI_CmdData_t;
 
 /**

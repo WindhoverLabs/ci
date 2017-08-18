@@ -347,10 +347,10 @@ void CI_CleanupCallback()
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 
-boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr)
+boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr, uint32 MsgSize)
 {
-	CFE_SB_CmdHdr_t     *CmdHdrPtr;
 	boolean 			bResult = FALSE;
+	uint32  			usMsgLen = 0;
 
 	/* Verify CCSDS version */
 	if (CCSDS_RD_VERS(MsgPtr->Hdr) != 0)
@@ -370,11 +370,12 @@ boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr)
 		goto CI_ValidateCmd_Exit_Tag;
 	}
 
-	/* Cast the input pointer to a Cmd Msg pointer */
-	CmdHdrPtr = (CFE_SB_CmdHdr_t *)MsgPtr;
-
 	/* Verify length */
-	// TODO
+	usMsgLen = CFE_SB_GetTotalMsgLength(MsgPtr);
+	if (usMsgLen != MsgSize)
+	{
+		goto CI_ValidateCmd_Exit_Tag;
+	}
 
 	/* Verify valid checksum */
 	if (CFE_SB_ValidateChecksum(MsgPtr) == FALSE)
@@ -390,15 +391,106 @@ CI_ValidateCmd_Exit_Tag:
 
 boolean CI_GetCmdAuthorized(CFE_SB_Msg_t* MsgPtr)
 {
-	boolean 			bResult = TRUE;
+	boolean 			bResult = FALSE;
+	uint32 				i = 0;
+	CFE_SB_MsgId_t  	msgID = 0;
+	CI_CmdData_t		*CmdData = NULL;
 
+	/* Get command from config table with same mid */
+	msgID = CFE_SB_GetMsgId(MsgPtr);
+	for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
+	{
+		if(CI_AppData.ConfigTblPtr->cmds[i].mid == msgID)
+		{
+			CmdData = &CI_AppData.ConfigTblPtr->cmds[i];
+		}
+	}
+
+	/* Check if command is not registered */
+	if (CmdData == NULL)
+	{
+		if (CI_AppData.IngestBehavior == BHV_OPTIMISTIC)
+		{
+			bResult = TRUE;
+		}
+
+		goto CI_GetCmdAuthorized_Exit_tag;
+	}
+
+	/* Check command stepping */
+	if (CmdData->step == CI_CMD_1_STEP)
+	{
+		bResult = TRUE;
+		goto CI_GetCmdAuthorized_Exit_tag;
+	}
+
+	/* Check if command is authorized */
+	if (CmdData->state == CI_CMD_AUTHORIZED)
+	{
+		bResult = TRUE;
+		CmdData->state = CI_CMD_UNAUTHORIZED;
+		goto CI_GetCmdAuthorized_Exit_tag;
+	}
+
+CI_GetCmdAuthorized_Exit_tag:
+	if (bResult == FALSE)
+	{
+		CI_AppData.HkTlm.usCmdErrCnt++;
+		CFE_EVS_SendEvent (CI_CMD_UNAUTHORIZED_EID, CFE_EVS_ERROR, "Cmd not authorized");
+	}
 
 	return bResult;
 }
 
 void CI_LogCmd(CFE_SB_Msg_t* MsgPtr)
 {
+	uint32 				i = 0;
+	CFE_SB_MsgId_t  	msgID = 0;
 
+	/* Get command from config table with same mid */
+	msgID = CFE_SB_GetMsgId(MsgPtr);
+	for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
+	{
+		if(CI_AppData.ConfigTblPtr->cmds[i].mid == msgID)
+		{
+			if(CI_AppData.ConfigTblPtr->cmds[i].log != CI_CMD_EXCLUDE_LOG)
+			{
+				// Log to ring buffer here
+			}
+
+			break;
+		}
+	}
+
+	return;
+}
+
+void CI_ProcessTimeouts(void)
+{
+	uint32 				i = 0;
+
+	while(1) // TODO Replace with guard
+	{
+		for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
+		{
+			if(CI_AppData.ConfigTblPtr->cmds[i].step == CI_CMD_2_STEP)
+			{
+				if(CI_AppData.ConfigTblPtr->cmds[i].state == CI_CMD_AUTHORIZED)
+				{
+					CI_AppData.ConfigTblPtr->cmds[i].timeout--;
+					if(CI_AppData.ConfigTblPtr->cmds[i].timeout == 0)
+					{
+						CI_AppData.ConfigTblPtr->cmds[i].state == CI_CMD_UNAUTHORIZED;
+						CFE_EVS_SendEvent (CI_CMD_AUTH_TIMEOUT_EID,
+										   CFE_EVS_INFORMATION,
+										   "Cmd authorization timeout");
+					}
+				}
+			}
+		}
+	}
+
+	return;
 }
 
 
@@ -440,7 +532,6 @@ void CI_ListenerTaskMain(void)
     CFE_ES_RegisterChildTask();
 
     /* Receive data and place in IngestBuffer */
-    /* TODO:  Replace infinite loop with something that will terminate on unload. */
     while(CI_AppData.IngestActive == TRUE)
     {
         MsgSize = CI_MAX_CMD_INGEST;
@@ -453,7 +544,7 @@ void CI_ListenerTaskMain(void)
             	CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
 
             	/* Verify validity of cmd */
-				if (CI_ValidateCmd(CmdMsgPtr) == TRUE)
+				if (CI_ValidateCmd(CmdMsgPtr, MsgSize) == TRUE)
 				{
 					CmdMsgId = CFE_SB_GetMsgId(CmdMsgPtr);
 
@@ -491,7 +582,7 @@ void CI_ListenerTaskMain(void)
                                   *(long *)(CI_AppData.IngestBuffer + 4) );
             }
         }
-        OS_TaskDelay(100);
+        OS_TaskDelay(100); // TODO: Verify required
     }
 
     CFE_ES_ExitChildTask();
