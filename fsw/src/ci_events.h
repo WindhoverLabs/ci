@@ -237,6 +237,108 @@ typedef enum {
 	*/
 	CI_CMD_AUTH_TIMEOUT_EID,
 
+	/** \brief <tt> '' </tt>
+	**  \event <tt> '' </tt>
+	**
+	**  \par Type: ERROR
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when a command
+	**  is not registered.
+	**
+	*/
+	CI_CMD_AUTH_NOT_REG_EID,
+
+	/** \brief <tt> '' </tt>
+	**  \event <tt> '' </tt>
+	**
+	**  \par Type: ERROR
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when attempting to
+	**  authorize a command that is not 2-step.
+	**
+	*/
+	CI_CMD_AUTH_INV_MODE_EID,
+
+	/** \brief <tt> '' </tt>
+	**  \event <tt> '' </tt>
+	**
+	**  \par Type: ERROR
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when attempting to
+	**  authorize a command that is already authorized.
+	**
+	*/
+	CI_CMD_AUTH_INV_STATE_EID,
+
+	/** \brief <tt> '' </tt>
+	**  \event <tt> '' </tt>
+	**
+	**  \par Type: INFORMATION
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when a command is authorized.
+	**
+	*/
+	CI_CMD_AUTHORIZED_EID,
+
+	/** \brief <tt> '' </tt>
+	**  \event <tt> '' </tt>
+	**
+	**  \par Type: ERROR
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when a command
+	**  is not registered.
+	**
+	*/
+	CI_CMD_DEAUTH_NOT_REG_EID,
+
+	/** \brief <tt> '' </tt>
+	**  \event <tt> '' </tt>
+	**
+	**  \par Type: ERROR
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when attempting to
+	**  deauthorize a command that is not 2-step.
+	**
+	*/
+	CI_CMD_DEAUTH_INV_MODE_EID,
+
+	/** \brief <tt> '' </tt>
+	**  \event <tt> '' </tt>
+	**
+	**  \par Type: ERROR
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when attempting to
+	**  deauthorize a command that is not authorized.
+	**
+	*/
+	CI_CMD_DEAUTH_INV_STATE_EID,
+
+	/** \brief <tt> '' </tt>
+	**  \event <tt> '' </tt>
+	**
+	**  \par Type: INFORMATION
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when a command is deauthorized.
+	**
+	*/
+	CI_CMD_DEAUTHORIZED_EID,
+
 /** \brief <tt> This is a count of all the app events and should not be used. </tt> */
     CI_EVT_CNT
 } CI_EventIds_t;

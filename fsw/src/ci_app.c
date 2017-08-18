@@ -389,24 +389,37 @@ CI_ValidateCmd_Exit_Tag:
 	return bResult;
 }
 
-boolean CI_GetCmdAuthorized(CFE_SB_Msg_t* MsgPtr)
+CI_CmdData_t *CI_GetRegisterdCmd(CFE_SB_MsgId_t msgID, uint16 cmdCode)
 {
-	boolean 			bResult = FALSE;
 	uint32 				i = 0;
-	CFE_SB_MsgId_t  	msgID = 0;
 	CI_CmdData_t		*CmdData = NULL;
 
 	/* Get command from config table with same mid */
-	msgID = CFE_SB_GetMsgId(MsgPtr);
 	for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
 	{
 		if(CI_AppData.ConfigTblPtr->cmds[i].mid == msgID)
 		{
-			CmdData = &CI_AppData.ConfigTblPtr->cmds[i];
+			if(CI_AppData.ConfigTblPtr->cmds[i].code == cmdCode)
+			{
+				CmdData = &CI_AppData.ConfigTblPtr->cmds[i];
+			}
 		}
 	}
 
+	return CmdData;
+}
+
+boolean CI_GetCmdAuthorized(CFE_SB_Msg_t* MsgPtr)
+{
+	boolean 			bResult = FALSE;
+	CFE_SB_MsgId_t  	msgID = 0;
+	CI_CmdData_t		*CmdData = NULL;
+	uint16 				cmdCode = 0;
+
 	/* Check if command is not registered */
+	msgID = CFE_SB_GetMsgId(MsgPtr);
+	cmdCode = CFE_SB_GetCmdCode(MsgPtr);
+	CmdData = CI_GetRegisterdCmd(msgID, cmdCode);
 	if (CmdData == NULL)
 	{
 		if (CI_AppData.IngestBehavior == BHV_OPTIMISTIC)
@@ -444,23 +457,94 @@ CI_GetCmdAuthorized_Exit_tag:
 
 void CI_LogCmd(CFE_SB_Msg_t* MsgPtr)
 {
-	uint32 				i = 0;
+	CI_CmdData_t		*CmdData = NULL;
 	CFE_SB_MsgId_t  	msgID = 0;
+	uint16 				cmdCode = 0;
 
-	/* Get command from config table with same mid */
+	/* Check if command is not registered */
 	msgID = CFE_SB_GetMsgId(MsgPtr);
-	for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
+	cmdCode = CFE_SB_GetCmdCode(MsgPtr);
+	CmdData = CI_GetRegisterdCmd(msgID, cmdCode);
+	if (CmdData == NULL)
 	{
-		if(CI_AppData.ConfigTblPtr->cmds[i].mid == msgID)
-		{
-			if(CI_AppData.ConfigTblPtr->cmds[i].log != CI_CMD_EXCLUDE_LOG)
-			{
-				// Log to ring buffer here
-			}
-
-			break;
-		}
+		// TODO
 	}
+
+	return;
+}
+
+void CI_CmdAuthorize(CFE_SB_MsgId_t msgID, uint16 cmdCode)
+{
+	CI_CmdData_t		*CmdData = NULL;
+
+	/* Check if command is not registered */
+	CmdData = CI_GetRegisterdCmd(msgID, cmdCode);
+	if (CmdData == NULL)
+	{
+		CFE_EVS_SendEvent (CI_CMD_AUTH_NOT_REG_EID, CFE_EVS_ERROR, "Cmd not registered");
+		CI_AppData.HkTlm.usCmdErrCnt++;
+		return;
+	}
+
+	/* Check if command is not 2-step */
+	if (CmdData->step != CI_CMD_2_STEP)
+	{
+		CFE_EVS_SendEvent (CI_CMD_AUTH_INV_MODE_EID, CFE_EVS_ERROR, "Cmd not 2-step");
+		CI_AppData.HkTlm.usCmdErrCnt++;
+		return;
+	}
+
+	/* Check if command is already authorized */
+	if (CmdData->state == CI_CMD_AUTHORIZED)
+	{
+		CFE_EVS_SendEvent (CI_CMD_AUTH_INV_STATE_EID, CFE_EVS_ERROR, "Cmd already authorized");
+		CI_AppData.HkTlm.usCmdErrCnt++;
+		return;
+	}
+
+	/* Update command data */
+	CmdData->state = CI_CMD_AUTHORIZED;
+	CmdData->timeout = CI_TIMEOUT_MSEC;
+	CFE_EVS_SendEvent (CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd authorized");
+	CI_AppData.HkTlm.usCmdCnt++;
+
+	return;
+}
+
+void CI_CmdDeauthorize(CFE_SB_MsgId_t msgID, uint16 cmdCode)
+{
+	CI_CmdData_t		*CmdData = NULL;
+
+	/* Check if command is not registered */
+	CmdData = CI_GetRegisterdCmd(msgID, cmdCode);
+	if (CmdData == NULL)
+	{
+		CFE_EVS_SendEvent (CI_CMD_DEAUTH_NOT_REG_EID, CFE_EVS_ERROR, "Cmd not registered");
+		CI_AppData.HkTlm.usCmdErrCnt++;
+		return;
+	}
+
+	/* Check if command is not 2-step */
+	if (CmdData->step != CI_CMD_2_STEP)
+	{
+		CFE_EVS_SendEvent (CI_CMD_DEAUTH_INV_MODE_EID, CFE_EVS_ERROR, "Cmd not 2-step");
+		CI_AppData.HkTlm.usCmdErrCnt++;
+		return;
+	}
+
+	/* Check if command is already unauthorized */
+	if (CmdData->state == CI_CMD_UNAUTHORIZED)
+	{
+		CFE_EVS_SendEvent (CI_CMD_DEAUTH_INV_STATE_EID, CFE_EVS_ERROR, "Cmd not authorized");
+		CI_AppData.HkTlm.usCmdErrCnt++;
+		return;
+	}
+
+	/* Update command data */
+	CmdData->state = CI_CMD_UNAUTHORIZED;
+	CmdData->timeout = 0; // Need?
+	CFE_EVS_SendEvent (CI_CMD_DEAUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd deauthorized");
+	CI_AppData.HkTlm.usCmdCnt++;
 
 	return;
 }
@@ -492,6 +576,8 @@ void CI_ProcessTimeouts(void)
 
 	return;
 }
+
+
 
 
 

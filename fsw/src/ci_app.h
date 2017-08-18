@@ -427,6 +427,64 @@ void CI_LogCmd(CFE_SB_Msg_t* MsgPtr);
 *************************************************************************/
 void CI_ProcessTimeouts(void);
 
+/************************************************************************/
+/** \brief Command Authorize
+**
+**  \par Description
+**       This function authorizes a 2-step command.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \param [in]   msgID        A #CFE_SB_MsgId_t that specifies the
+**  						   message ID if of the command
+**
+**  \param [in]   cmdCode      A #uint16 that specifies the command
+**  						   code of the message to authorize
+**
+*************************************************************************/
+void CI_CmdAuthorize(CFE_SB_MsgId_t msgID, uint16 cmdCode);
+
+/************************************************************************/
+/** \brief Command Authorize
+**
+**  \par Description
+**       This function deauthorizes a 2-step command.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \param [in]   msgID        A #CFE_SB_MsgId_t that specifies the
+**  						   message ID if of the command
+**
+**  \param [in]   cmdCode      A #uint16 that specifies the command
+**  						   code of the message to deauthorize
+**
+*************************************************************************/
+void CI_CmdDeauthorize(CFE_SB_MsgId_t msgID, uint16 cmdCode);
+
+/************************************************************************/
+/** \brief Get Registered Command
+**
+**  \par Description
+**       This function searches for and returns a command
+**       from the config table
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \param [in]   msgID        A #CFE_SB_MsgId_t that specifies the
+**  						   message ID if of the command
+**
+**  \param [in]   cmdCode      A #uint16 that specifies the command code
+**
+**  \returns
+**  #CI_CmdData_t if the command is registerd, NULL if it is not.
+**  \endreturns
+**
+*************************************************************************/
+CI_CmdData_t *CI_GetRegisterdCmd(CFE_SB_MsgId_t msgID, uint16 cmdCode);
+
 #ifdef __cplusplus
 }
 #endif 
