@@ -120,6 +120,20 @@ typedef struct
 } CI_InData_t;
 
 /** 
+**  \brief Cmd data row for config table
+**
+*/
+typedef struct
+{
+    uint16   mid;
+    int32	 code;
+    uint8	 step;
+    uint8	 state;
+    int32	 timeout;
+    int	 RouteCount;
+} CI_CmdData_t;
+
+/**
 **  \brief TODO Elaborate this struct
 **  Boilerplate example of application-specific outgoing data
 */
