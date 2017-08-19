@@ -21,6 +21,7 @@
 #include "ci_events.h"
 #include "ci_config_utils.h"
 #include "ci_cds_utils.h"
+#include "ci_tbldefs.h"
 
 #ifdef __cplusplus
 extern "C" {

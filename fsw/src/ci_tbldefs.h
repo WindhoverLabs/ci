@@ -10,6 +10,7 @@
 ** Includes
 *************************************************************************/
 #include "cfe.h"
+#include "ci_app.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -61,13 +62,6 @@ typedef struct
 /************************************************************************
 ** Global Variables
 *************************************************************************/
-
-#define CI_CMD_1_STEP				0
-#define CI_CMD_2_STEP				1
-#define CI_CMD_UNAUTHORIZED			0
-#define CI_CMD_AUTHORIZED			1
-#define CI_CMD_LOG					0
-#define CI_CMD_EXCLUDE_LOG			1
 
 /************************************************************************
 ** Local Variables

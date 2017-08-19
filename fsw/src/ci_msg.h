@@ -92,6 +92,27 @@ extern "C" {
 ** Local Structure Declarations
 *************************************************************************/
 
+/** \brief  */
+typedef enum
+{
+    STEP_1,
+	STEP_2
+} CI_CmdStep_t;
+
+/** \brief  */
+typedef enum
+{
+	UNAUTHORIZED,
+	AUTHORIZED
+} CI_CmdAuth_t;
+
+/** \brief  */
+typedef enum
+{
+	LOG,
+	EXCLUDE_LOG
+} CI_CmdLog_t;
+
 /** 
 **  \brief No Arguments Command
 **  For command details see #CI_NOOP_CC, #CI_RESET_CC
@@ -125,13 +146,13 @@ typedef struct
 */
 typedef struct
 {
-    uint16   mid;
-    int32	 code;
-    uint8	 step;
-    uint8	 state;
-    int32	 timeout;
-    int	 RouteCount;
-    int	 log;
+    uint16   		mid;
+    int32	 		code;
+    CI_CmdStep_t	step;
+    CI_CmdAuth_t	state;
+    int32	 		timeout;
+    int	 			RouteCount;
+    CI_CmdLog_t	 	log;
 } CI_CmdData_t;
 
 /**
