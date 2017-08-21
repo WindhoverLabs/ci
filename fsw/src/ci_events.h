@@ -402,6 +402,18 @@ typedef enum {
 	*/
 	CI_CMD_REG_ERR_EID,
 
+	/** \brief <tt> '' </tt>
+	**  \event <tt> '' </tt>
+	**
+	**  \par Type: ERROR
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when attempting to update
+	**  a 2-step registered command while it is authorized
+	*/
+	CI_CMD_UPDT_REG_INVLD_STATE_EID,
+
 /** \brief <tt> This is a count of all the app events and should not be used. </tt> */
     CI_EVT_CNT
 } CI_EventIds_t;

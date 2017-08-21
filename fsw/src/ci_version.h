@@ -18,7 +18,7 @@ extern "C" {
 **       Must be defined as a numeric value that is greater than
 **       or equal to zero.
 */
-#define CI_MAJOR_VERSION    (0)
+#define CI_MAJOR_VERSION    (1)
 
 /** \brief Minor version number for CI application
 **  
