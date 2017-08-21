@@ -437,17 +437,14 @@ void CI_ProcessTimeouts(void);
 **  \par Assumptions, External Events, and Notes:
 **       None
 **
-**  \param [in]   msgID        A #CFE_SB_MsgId_t that specifies the
-**  						   message ID if of the command
-**
-**  \param [in]   cmdCode      A #uint16 that specifies the command
-**  						   code of the message to authorize
+**  \param [in]   MsgPtr        A #CFE_SB_Msg_t pointer that
+**                              references the software bus message
 **
 *************************************************************************/
-void CI_CmdAuthorize(CFE_SB_MsgId_t msgID, uint16 cmdCode);
+void CI_CmdAuthorize(CFE_SB_Msg_t* MsgPtr);
 
 /************************************************************************/
-/** \brief Command Authorize
+/** \brief Command Deauthorize
 **
 **  \par Description
 **       This function deauthorizes a 2-step command.
@@ -455,14 +452,11 @@ void CI_CmdAuthorize(CFE_SB_MsgId_t msgID, uint16 cmdCode);
 **  \par Assumptions, External Events, and Notes:
 **       None
 **
-**  \param [in]   msgID        A #CFE_SB_MsgId_t that specifies the
-**  						   message ID if of the command
-**
-**  \param [in]   cmdCode      A #uint16 that specifies the command
-**  						   code of the message to deauthorize
+**  \param [in]   MsgPtr        A #CFE_SB_Msg_t pointer that
+**                              references the software bus message
 **
 *************************************************************************/
-void CI_CmdDeauthorize(CFE_SB_MsgId_t msgID, uint16 cmdCode);
+void CI_CmdDeauthorize(CFE_SB_Msg_t* MsgPtr);
 
 /************************************************************************/
 /** \brief Get Registered Command
@@ -485,6 +479,51 @@ void CI_CmdDeauthorize(CFE_SB_MsgId_t msgID, uint16 cmdCode);
 **
 *************************************************************************/
 CI_CmdData_t *CI_GetRegisterdCmd(CFE_SB_MsgId_t msgID, uint16 cmdCode);
+
+/************************************************************************/
+/** \brief Register Command
+**
+**  \par Description
+**       This function adds a command to the registration table.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \param [in]   MsgPtr        A #CFE_SB_Msg_t pointer that
+**                              references the software bus message
+**
+*************************************************************************/
+void CI_CmdRegister(CFE_SB_Msg_t* MsgPtr);
+
+/************************************************************************/
+/** \brief Deregister Command
+**
+**  \par Description
+**       This function removes a command from the registration table.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \param [in]   MsgPtr        A #CFE_SB_Msg_t pointer that
+**                              references the software bus message
+**
+*************************************************************************/
+void CI_CmdDeregister(CFE_SB_Msg_t* MsgPtr);
+
+/************************************************************************/
+/** \brief Update Command Register
+**
+**  \par Description
+**       This function updates a command in the registration table.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \param [in]   MsgPtr        A #CFE_SB_Msg_t pointer that
+**                              references the software bus message
+**
+*************************************************************************/
+void CI_UpdateCmdReg(CFE_SB_Msg_t* MsgPtr);
 
 #ifdef __cplusplus
 }

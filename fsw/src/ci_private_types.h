@@ -23,7 +23,41 @@ extern "C" {
 ** Local Structure Declarations
 *************************************************************************/
 
-/* TODO:  Add more private structure definitions here, if necessary. */
+/** \brief  */
+typedef enum
+{
+    STEP_1,
+	STEP_2
+} CI_CmdStep_t;
+
+/** \brief  */
+typedef enum
+{
+	UNAUTHORIZED,
+	AUTHORIZED
+} CI_CmdAuth_t;
+
+/** \brief  */
+typedef enum
+{
+	LOG,
+	EXCLUDE_LOG
+} CI_CmdLog_t;
+
+/**
+**  \brief Cmd data row for config table
+**  All data affiliated with commmands known to CI
+*/
+typedef struct
+{
+    uint16   		mid;
+    int32	 		code;
+    CI_CmdStep_t	step;
+    CI_CmdAuth_t	state;
+    int32	 		timeout;
+    int	 			RouteCount;
+    CI_CmdLog_t	 	log;
+} CI_CmdData_t;
 
 /************************************************************************
 ** External Global Variables

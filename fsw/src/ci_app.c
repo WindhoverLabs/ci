@@ -347,6 +347,265 @@ void CI_CleanupCallback()
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+CI_CmdData_t *CI_GetRegisterdCmd(CFE_SB_MsgId_t msgID, uint16 cmdCode)
+{
+	uint32 				i = 0;
+	CI_CmdData_t		*CmdData = NULL;
+
+	/* Get command from config table with same params */
+	for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
+	{
+		if(CI_AppData.ConfigTblPtr->cmds[i].mid == msgID)
+		{
+			if(CI_AppData.ConfigTblPtr->cmds[i].code == cmdCode)
+			{
+				CmdData = &CI_AppData.ConfigTblPtr->cmds[i];
+			}
+		}
+	}
+
+	return CmdData;
+}
+
+void CI_LogCmd(CFE_SB_Msg_t* MsgPtr)
+{
+	CI_CmdData_t		*CmdData = NULL;
+	CFE_SB_MsgId_t  	msgID = 0;
+	uint16 				cmdCode = 0;
+
+	/* Check if command is not registered */
+	msgID = CFE_SB_GetMsgId(MsgPtr);
+	cmdCode = CFE_SB_GetCmdCode(MsgPtr);
+	CmdData = CI_GetRegisterdCmd(msgID, cmdCode);
+	if (CmdData == NULL)
+	{
+		// TODO
+	}
+
+	return;
+}
+
+void CI_CmdAuthorize(CFE_SB_Msg_t* MsgPtr)
+{
+	uint16              ExpectedLength = sizeof(CI_CmdAuthData_t);
+	CI_CmdData_t		*CmdData = NULL;
+	CI_CmdAuthData_t 	*authDataPtr;
+
+	/* Verify command packet length */
+	if (CI_VerifyCmdLength (MsgPtr, ExpectedLength))
+	{
+		/* Check if command is not registered */
+		authDataPtr = ((CI_CmdAuthData_t *) MsgPtr);
+		CmdData = CI_GetRegisterdCmd(authDataPtr->msgID, authDataPtr->cmdCode);
+		if (CmdData == NULL)
+		{
+			CFE_EVS_SendEvent (CI_CMD_AUTH_NOT_REG_EID, CFE_EVS_ERROR, "Cmd not registered");
+			CI_AppData.HkTlm.usCmdErrCnt++;
+			return;
+		}
+
+		/* Check if command is not 2-step */
+		if (CmdData->step != STEP_2)
+		{
+			CFE_EVS_SendEvent (CI_CMD_AUTH_INV_MODE_EID, CFE_EVS_ERROR, "Cmd not 2-step");
+			CI_AppData.HkTlm.usCmdErrCnt++;
+			return;
+		}
+
+		/* Check if command is already authorized */
+		if (CmdData->state == AUTHORIZED)
+		{
+			CFE_EVS_SendEvent (CI_CMD_AUTH_INV_STATE_EID, CFE_EVS_ERROR, "Cmd already authorized");
+			CI_AppData.HkTlm.usCmdErrCnt++;
+			return;
+		}
+
+		/* Update command data */
+		CmdData->state = AUTHORIZED;
+		CmdData->timeout = CI_TIMEOUT_MSEC;
+		CFE_EVS_SendEvent (CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd authorized");
+		CI_AppData.HkTlm.usCmdCnt++;
+	}
+
+	return;
+}
+
+void CI_CmdDeauthorize(CFE_SB_Msg_t* MsgPtr)
+{
+	uint16              ExpectedLength = sizeof(CI_CmdAuthData_t);
+	CI_CmdData_t		*CmdData = NULL;
+	CI_CmdAuthData_t 	*authDataPtr;
+
+	/* Verify command packet length */
+	if (CI_VerifyCmdLength (MsgPtr, ExpectedLength))
+	{
+		/* Check if command is not registered */
+		authDataPtr = ((CI_CmdAuthData_t *) MsgPtr);
+		CmdData = CI_GetRegisterdCmd(authDataPtr->msgID, authDataPtr->cmdCode);
+		if (CmdData == NULL)
+		{
+			CFE_EVS_SendEvent (CI_CMD_DEAUTH_NOT_REG_EID, CFE_EVS_ERROR, "Cmd not registered");
+			CI_AppData.HkTlm.usCmdErrCnt++;
+			return;
+		}
+
+		/* Check if command is not 2-step */
+		if (CmdData->step != STEP_2)
+		{
+			CFE_EVS_SendEvent (CI_CMD_DEAUTH_INV_MODE_EID, CFE_EVS_ERROR, "Cmd not 2-step");
+			CI_AppData.HkTlm.usCmdErrCnt++;
+			return;
+		}
+
+		/* Check if command is already unauthorized */
+		if (CmdData->state == UNAUTHORIZED)
+		{
+			CFE_EVS_SendEvent (CI_CMD_DEAUTH_INV_STATE_EID, CFE_EVS_ERROR, "Cmd not authorized");
+			CI_AppData.HkTlm.usCmdErrCnt++;
+			return;
+		}
+
+		/* Update command data */
+		CmdData->state = UNAUTHORIZED;
+		CmdData->timeout = 0; // Need?
+		CFE_EVS_SendEvent (CI_CMD_DEAUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd deauthorized");
+		CI_AppData.HkTlm.usCmdCnt++;
+	}
+
+
+	return;
+}
+
+void CI_CmdRegister(CFE_SB_Msg_t* MsgPtr)
+{
+	uint16              ExpectedLength = sizeof(CI_CmdRegData_t);
+	CI_CmdData_t		*CmdData = NULL;
+	CI_CmdRegData_t 	*regDataPtr;
+	uint32 				i = 0;
+
+	/* Verify command packet length */
+	if (CI_VerifyCmdLength (MsgPtr, ExpectedLength))
+	{
+		/* Check if command is already registered */
+		regDataPtr = ((CI_CmdRegData_t *) MsgPtr);
+		CmdData = CI_GetRegisterdCmd(regDataPtr->msgID, regDataPtr->cmdCode);
+		if (CmdData == NULL)
+		{
+			/* Find first unused index in config table to add command */
+			for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
+			{
+				if(CI_AppData.ConfigTblPtr->cmds[i].mid == 0)
+				{
+					CmdData = &CI_AppData.ConfigTblPtr->cmds[i];
+					break;
+				}
+			}
+
+			if(CmdData != NULL)
+			{
+				CmdData->mid = regDataPtr->msgID;
+				CmdData->code = regDataPtr->cmdCode;
+				CmdData->step = regDataPtr->step;
+				CmdData->state = UNAUTHORIZED;
+				CmdData->timeout = 0;
+				CmdData->RouteCount = 0;
+				CmdData->log = regDataPtr->log;
+
+				CFE_EVS_SendEvent (CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "Cmd registered");
+				CI_AppData.HkTlm.usCmdCnt++;
+				return;
+			}
+			else
+			{
+				CFE_EVS_SendEvent (CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to register cmd");
+				CI_AppData.HkTlm.usCmdErrCnt++;
+			}
+		}
+		else
+		{
+			CFE_EVS_SendEvent (CI_CMD_ALREADY_REGISTERED_EID, CFE_EVS_ERROR, "Cmd already registered");
+			CI_AppData.HkTlm.usCmdErrCnt++;
+		}
+	}
+
+	return;
+}
+
+void CI_CmdDeregister(CFE_SB_Msg_t* MsgPtr)
+{
+	uint16              ExpectedLength = sizeof(CI_CmdRegData_t);
+	CI_CmdData_t		*CmdData = NULL;
+	CI_CmdRegData_t 	*regDataPtr;
+
+	/* Verify command packet length */
+	if (CI_VerifyCmdLength (MsgPtr, ExpectedLength))
+	{
+		/* Check if command is not registered */
+		regDataPtr = ((CI_CmdRegData_t *) MsgPtr);
+		CmdData = CI_GetRegisterdCmd(regDataPtr->msgID, regDataPtr->cmdCode);
+		if (CmdData == NULL)
+		{
+			CFE_EVS_SendEvent (CI_CMD_DEAUTH_NOT_REG_EID, CFE_EVS_ERROR, "Cmd not registered");
+			CI_AppData.HkTlm.usCmdErrCnt++;
+			return;
+		}
+
+	}
+
+
+	return;
+}
+
+void CI_UpdateCmdReg(CFE_SB_Msg_t* MsgPtr)
+{
+	uint16              ExpectedLength = sizeof(CI_CmdRegData_t);
+	CI_CmdData_t		*CmdData = NULL;
+	CI_CmdAuthData_t 	*regDataPtr;
+
+	/* Verify command packet length */
+	if (CI_VerifyCmdLength (MsgPtr, ExpectedLength))
+	{
+		/* Check if command is not registered */
+		regDataPtr = ((CI_CmdRegData_t *) MsgPtr);
+		CmdData = CI_GetRegisterdCmd(regDataPtr->msgID, regDataPtr->cmdCode);
+		if (CmdData == NULL)
+		{
+			CFE_EVS_SendEvent (CI_CMD_DEAUTH_NOT_REG_EID, CFE_EVS_ERROR, "Cmd not registered");
+			CI_AppData.HkTlm.usCmdErrCnt++;
+			return;
+		}
+	}
+
+	return;
+}
+
+void CI_ProcessTimeouts(void)
+{
+	uint32 				i = 0;
+
+	while(1) // TODO Replace with guard
+	{
+		for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
+		{
+			if(CI_AppData.ConfigTblPtr->cmds[i].step == STEP_2)
+			{
+				if(CI_AppData.ConfigTblPtr->cmds[i].state == AUTHORIZED)
+				{
+					CI_AppData.ConfigTblPtr->cmds[i].timeout--;
+					if(CI_AppData.ConfigTblPtr->cmds[i].timeout == 0)
+					{
+						CI_AppData.ConfigTblPtr->cmds[i].state == UNAUTHORIZED;
+						CFE_EVS_SendEvent (CI_CMD_AUTH_TIMEOUT_EID,
+										   CFE_EVS_INFORMATION,
+										   "Cmd authorization timeout");
+					}
+				}
+			}
+		}
+	}
+
+	return;
+}
 
 boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr, uint32 MsgSize)
 {
@@ -384,36 +643,16 @@ boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr, uint32 MsgSize)
 	}
 
 	/* Verify valid checksum */
-	if (CFE_SB_ValidateChecksum(MsgPtr) == FALSE)
+	if (CFE_SB_ValidateChecksum(MsgPtr) != TRUE) // TODO
 	{
 		OS_printf("cks \n");
-		//goto CI_ValidateCmd_Exit_Tag; TODO
+		//goto CI_ValidateCmd_Exit_Tag;
 	}
 
 	bResult = TRUE;
 
 CI_ValidateCmd_Exit_Tag:
 	return bResult;
-}
-
-CI_CmdData_t *CI_GetRegisterdCmd(CFE_SB_MsgId_t msgID, uint16 cmdCode)
-{
-	uint32 				i = 0;
-	CI_CmdData_t		*CmdData = NULL;
-
-	/* Get command from config table with same mid */
-	for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
-	{
-		if(CI_AppData.ConfigTblPtr->cmds[i].mid == msgID)
-		{
-			if(CI_AppData.ConfigTblPtr->cmds[i].code == cmdCode)
-			{
-				CmdData = &CI_AppData.ConfigTblPtr->cmds[i];
-			}
-		}
-	}
-
-	return CmdData;
 }
 
 boolean CI_GetCmdAuthorized(CFE_SB_Msg_t* MsgPtr)
@@ -463,132 +702,6 @@ CI_GetCmdAuthorized_Exit_tag:
 	return bResult;
 }
 
-void CI_LogCmd(CFE_SB_Msg_t* MsgPtr)
-{
-	CI_CmdData_t		*CmdData = NULL;
-	CFE_SB_MsgId_t  	msgID = 0;
-	uint16 				cmdCode = 0;
-
-	/* Check if command is not registered */
-	msgID = CFE_SB_GetMsgId(MsgPtr);
-	cmdCode = CFE_SB_GetCmdCode(MsgPtr);
-	CmdData = CI_GetRegisterdCmd(msgID, cmdCode);
-	if (CmdData == NULL)
-	{
-		// TODO
-	}
-
-	return;
-}
-
-void CI_CmdAuthorize(CFE_SB_MsgId_t msgID, uint16 cmdCode)
-{
-	CI_CmdData_t		*CmdData = NULL;
-
-	/* Check if command is not registered */
-	CmdData = CI_GetRegisterdCmd(msgID, cmdCode);
-	if (CmdData == NULL)
-	{
-		CFE_EVS_SendEvent (CI_CMD_AUTH_NOT_REG_EID, CFE_EVS_ERROR, "Cmd not registered");
-		CI_AppData.HkTlm.usCmdErrCnt++;
-		return;
-	}
-
-	/* Check if command is not 2-step */
-	if (CmdData->step != STEP_2)
-	{
-		CFE_EVS_SendEvent (CI_CMD_AUTH_INV_MODE_EID, CFE_EVS_ERROR, "Cmd not 2-step");
-		CI_AppData.HkTlm.usCmdErrCnt++;
-		return;
-	}
-
-	/* Check if command is already authorized */
-	if (CmdData->state == AUTHORIZED)
-	{
-		CFE_EVS_SendEvent (CI_CMD_AUTH_INV_STATE_EID, CFE_EVS_ERROR, "Cmd already authorized");
-		CI_AppData.HkTlm.usCmdErrCnt++;
-		return;
-	}
-
-	/* Update command data */
-	CmdData->state = AUTHORIZED;
-	CmdData->timeout = CI_TIMEOUT_MSEC;
-	CFE_EVS_SendEvent (CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd authorized");
-	CI_AppData.HkTlm.usCmdCnt++;
-
-	return;
-}
-
-void CI_CmdDeauthorize(CFE_SB_MsgId_t msgID, uint16 cmdCode)
-{
-	CI_CmdData_t		*CmdData = NULL;
-
-	/* Check if command is not registered */
-	CmdData = CI_GetRegisterdCmd(msgID, cmdCode);
-	if (CmdData == NULL)
-	{
-		CFE_EVS_SendEvent (CI_CMD_DEAUTH_NOT_REG_EID, CFE_EVS_ERROR, "Cmd not registered");
-		CI_AppData.HkTlm.usCmdErrCnt++;
-		return;
-	}
-
-	/* Check if command is not 2-step */
-	if (CmdData->step != STEP_2)
-	{
-		CFE_EVS_SendEvent (CI_CMD_DEAUTH_INV_MODE_EID, CFE_EVS_ERROR, "Cmd not 2-step");
-		CI_AppData.HkTlm.usCmdErrCnt++;
-		return;
-	}
-
-	/* Check if command is already unauthorized */
-	if (CmdData->state == UNAUTHORIZED)
-	{
-		CFE_EVS_SendEvent (CI_CMD_DEAUTH_INV_STATE_EID, CFE_EVS_ERROR, "Cmd not authorized");
-		CI_AppData.HkTlm.usCmdErrCnt++;
-		return;
-	}
-
-	/* Update command data */
-	CmdData->state = UNAUTHORIZED;
-	CmdData->timeout = 0; // Need?
-	CFE_EVS_SendEvent (CI_CMD_DEAUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd deauthorized");
-	CI_AppData.HkTlm.usCmdCnt++;
-
-	return;
-}
-
-void CI_ProcessTimeouts(void)
-{
-	uint32 				i = 0;
-
-	while(1) // TODO Replace with guard
-	{
-		for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
-		{
-			if(CI_AppData.ConfigTblPtr->cmds[i].step == STEP_2)
-			{
-				if(CI_AppData.ConfigTblPtr->cmds[i].state == AUTHORIZED)
-				{
-					CI_AppData.ConfigTblPtr->cmds[i].timeout--;
-					if(CI_AppData.ConfigTblPtr->cmds[i].timeout == 0)
-					{
-						CI_AppData.ConfigTblPtr->cmds[i].state == UNAUTHORIZED;
-						CFE_EVS_SendEvent (CI_CMD_AUTH_TIMEOUT_EID,
-										   CFE_EVS_INFORMATION,
-										   "Cmd authorization timeout");
-					}
-				}
-			}
-		}
-	}
-
-	return;
-}
-
-
-
-
-
 /* TODO:  Add Doxygen markup. */
 int32 CI_InitListenerTask(void)
 {
@@ -635,33 +748,31 @@ void CI_ListenerTaskMain(void)
 			CI_ReadMessage(CI_AppData.IngestBuffer, &MsgSize);
 			if(MsgSize > 0)
 			{
-				OS_printf("msg > 0 \n");
+				//OS_printf("msg > 0 \n");
 				/* If number of bytes received less than max */
 				if (MsgSize <= CI_MAX_CMD_INGEST)
 				{
-					OS_printf("msg < max \n");
+					//OS_printf("msg < max \n");
 					CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
 
 					/* Verify validity of cmd */
 					if (CI_ValidateCmd(CmdMsgPtr, MsgSize) == TRUE)
 					{
-						OS_printf("valid \n");
+						OS_printf("Cmd valid \n");
 						CmdMsgId = CFE_SB_GetMsgId(CmdMsgPtr);
 
 						/* Check if cmd is for CI and route if so */
 						if (CI_CMD_MID == CmdMsgId)
 						{
-							OS_printf("ci \n");
 							CI_ProcessNewAppCmds(CmdMsgPtr); // TODO Is error checking in func enough?
 							CI_LogCmd(CmdMsgPtr);
 						}
 						else
 						{
-							OS_printf("not ci \n");
 							/* Verify cmd is authorized */
 							if (CI_GetCmdAuthorized(CmdMsgPtr) == TRUE)
 							{
-								OS_printf("auth \n");
+								OS_printf("Cmd is authorized. Sending... \n");
 								CFE_ES_PerfLogEntry(CI_SOCKET_RCV_PERF_ID); // need?
 								CI_AppData.HkTlm.IngestMsgCount++;
 								CFE_SB_SendMsg(CmdMsgPtr); // Can use variable?
@@ -713,8 +824,12 @@ int32 CI_RcvMsg(int32 iBlocking)
     /* Stop Performance Log entry */
     CFE_ES_PerfLogExit(CI_MAIN_TASK_PERF_ID);
 
+    (void) CFE_TBL_ReleaseAddress(CI_AppData.ConfigTblHdl);
+
     /* Wait for WakeUp messages from scheduler */
     iStatus = CFE_SB_RcvMsg(&MsgPtr, CI_AppData.SchPipeId, iBlocking);
+
+    CI_AcquireConfigPointers();
 
     /* Start Performance Log entry */
     CFE_ES_PerfLogEntry(CI_MAIN_TASK_PERF_ID);
@@ -916,7 +1031,28 @@ void CI_ProcessNewAppCmds(CFE_SB_Msg_t* MsgPtr)
                                   "Recvd RESET cmd (%u)", (unsigned int)uiCmdCode);
                 break;
 
-            /* TODO:  Add code to process the rest of the CI commands here */
+            case CI_ARM_CMD_CC:
+            	CI_CmdAuthorize(MsgPtr);
+				break;
+
+            case CI_DISARM_CMD_CC:
+            	CI_CmdDeauthorize(MsgPtr);
+				break;
+
+            case CI_REG_CMD_CC:
+            	CI_CmdRegister(MsgPtr);
+				break;
+
+            case CI_DEREG_CMD_CC:
+            	CI_CmdDeregister(MsgPtr);
+				break;
+
+            case CI_UPDT_CMD_CC:
+            	CI_UpdateCmdReg(MsgPtr);
+				break;
+
+            case CI_DUMP_LOG_CC:
+				break;
 
             default:
                 CI_AppData.HkTlm.usCmdErrCnt++;
@@ -1052,12 +1188,6 @@ void CI_AppMain()
         CI_UpdateCdsTbl();
         CI_SaveCdsTbl();
 
-        iStatus = CI_AcquireConfigPointers();
-        if(iStatus != CFE_SUCCESS)
-        {
-            /* We apparently tried to load a new table but failed.  Terminate the application. */
-            CI_AppData.uiRunStatus = CFE_ES_APP_ERROR;
-        }
     }
 
     /* Stop Performance Log entry */

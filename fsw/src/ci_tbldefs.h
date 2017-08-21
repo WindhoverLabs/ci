@@ -10,7 +10,8 @@
 ** Includes
 *************************************************************************/
 #include "cfe.h"
-#include "ci_app.h"
+#include "ci_private_types.h"
+#include "ci_mission_cfg.h"
 
 #ifdef __cplusplus
 extern "C" {

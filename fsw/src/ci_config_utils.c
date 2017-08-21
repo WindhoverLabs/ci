@@ -144,14 +144,6 @@ int32 CI_AcquireConfigPointers(void)
     int32 iStatus = CFE_SUCCESS;
 
     /*
-    ** Release the table
-    */
-    /* TODO: This return value can indicate success, error, or that the info has been 
-     * updated.  We ignore this return value in favor of checking CFE_TBL_Manage(), but
-     * be sure this is the behavior you want. */
-    (void) CFE_TBL_ReleaseAddress(CI_AppData.ConfigTblHdl);
-
-    /*
     ** Manage the table
     */
     iStatus = CFE_TBL_Manage(CI_AppData.ConfigTblHdl);

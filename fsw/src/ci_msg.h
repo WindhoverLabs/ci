@@ -88,30 +88,207 @@ extern "C" {
 */
 #define CI_RESET_CC                (1)
 
+/** \cicmd Authorize Command
+**
+**  \par Description
+**       Authorizes a 2-step command
+**
+**  \par Command Structure
+**       #CI_NoArgCmd_t
+**
+**  \par Command Verification
+**       Successful execution of this command may be verified with
+**       the following telemetry:
+**       - \b \c \CI_CMDACTPCNT       - command counter will be cleared
+**       - \b \c \CI_CMDRJCTCNT       - command error counter will be cleared
+**       - The #CI_CMD_INF_EID debug event message will be
+**         generated when the command is executed
+**
+**  \par Error Conditions
+**       This command may fail for the following reason(s):
+**       - Command packet length not as expected
+**
+**  \par Evidence of failure may be found in the following telemetry:
+**       - \b \c \CI_CMDRJCTCNT - command error counter will increment
+**       - Error specific event message #CI_MSGID_ERR_EID
+**
+**  \par Criticality
+**       None
+**
+**  \sa #CI_ARM_CMD_CC
+*/
+#define CI_ARM_CMD_CC                (2)
+
+/** \cicmd Reset Counters TODO
+**
+**  \par Description
+**       Resets the ci housekeeping counters
+**
+**  \cicmdmnemonic \CI_TLMRST
+**
+**  \par Command Structure
+**       #CI_NoArgCmd_t
+**
+**  \par Command Verification
+**       Successful execution of this command may be verified with
+**       the following telemetry:
+**       - \b \c \CI_CMDACTPCNT       - command counter will be cleared
+**       - \b \c \CI_CMDRJCTCNT       - command error counter will be cleared
+**       - The #CI_CMD_INF_EID debug event message will be
+**         generated when the command is executed
+**
+**  \par Error Conditions
+**       This command may fail for the following reason(s):
+**       - Command packet length not as expected
+**
+**  \par Evidence of failure may be found in the following telemetry:
+**       - \b \c \CI_CMDRJCTCNT - command error counter will increment
+**       - Error specific event message #CI_MSGID_ERR_EID
+**
+**  \par Criticality
+**       None
+**
+**  \sa #CI_ARM_CMD_CC
+*/
+#define CI_DISARM_CMD_CC                (3)
+
+/** \cicmd Reset Counters TODO
+**
+**  \par Description
+**       Resets the ci housekeeping counters
+**
+**  \cicmdmnemonic \CI_TLMRST
+**
+**  \par Command Structure
+**       #CI_NoArgCmd_t
+**
+**  \par Command Verification
+**       Successful execution of this command may be verified with
+**       the following telemetry:
+**       - \b \c \CI_CMDACTPCNT       - command counter will be cleared
+**       - \b \c \CI_CMDRJCTCNT       - command error counter will be cleared
+**       - The #CI_CMD_INF_EID debug event message will be
+**         generated when the command is executed
+**
+**  \par Error Conditions
+**       This command may fail for the following reason(s):
+**       - Command packet length not as expected
+**
+**  \par Evidence of failure may be found in the following telemetry:
+**       - \b \c \CI_CMDRJCTCNT - command error counter will increment
+**       - Error specific event message #CI_MSGID_ERR_EID
+**
+**  \par Criticality
+**       None
+**
+**  \sa #CI_ARM_CMD_CC
+*/
+#define CI_REG_CMD_CC                (4)
+
+/** \cicmd Reset Counters TODO
+**
+**  \par Description
+**       Resets the ci housekeeping counters
+**
+**  \cicmdmnemonic \CI_TLMRST
+**
+**  \par Command Structure
+**       #CI_NoArgCmd_t
+**
+**  \par Command Verification
+**       Successful execution of this command may be verified with
+**       the following telemetry:
+**       - \b \c \CI_CMDACTPCNT       - command counter will be cleared
+**       - \b \c \CI_CMDRJCTCNT       - command error counter will be cleared
+**       - The #CI_CMD_INF_EID debug event message will be
+**         generated when the command is executed
+**
+**  \par Error Conditions
+**       This command may fail for the following reason(s):
+**       - Command packet length not as expected
+**
+**  \par Evidence of failure may be found in the following telemetry:
+**       - \b \c \CI_CMDRJCTCNT - command error counter will increment
+**       - Error specific event message #CI_MSGID_ERR_EID
+**
+**  \par Criticality
+**       None
+**
+**  \sa #CI_ARM_CMD_CC
+*/
+#define CI_DEREG_CMD_CC                (5)
+
+/** \cicmd Reset Counters TODO
+**
+**  \par Description
+**       Resets the ci housekeeping counters
+**
+**  \cicmdmnemonic \CI_TLMRST
+**
+**  \par Command Structure
+**       #CI_NoArgCmd_t
+**
+**  \par Command Verification
+**       Successful execution of this command may be verified with
+**       the following telemetry:
+**       - \b \c \CI_CMDACTPCNT       - command counter will be cleared
+**       - \b \c \CI_CMDRJCTCNT       - command error counter will be cleared
+**       - The #CI_CMD_INF_EID debug event message will be
+**         generated when the command is executed
+**
+**  \par Error Conditions
+**       This command may fail for the following reason(s):
+**       - Command packet length not as expected
+**
+**  \par Evidence of failure may be found in the following telemetry:
+**       - \b \c \CI_CMDRJCTCNT - command error counter will increment
+**       - Error specific event message #CI_MSGID_ERR_EID
+**
+**  \par Criticality
+**       None
+**
+**  \sa #CI_ARM_CMD_CC
+*/
+#define CI_UPDT_CMD_CC                (6)
+
+/** \cicmd Reset Counters TODO
+**
+**  \par Description
+**       Resets the ci housekeeping counters
+**
+**  \cicmdmnemonic \CI_TLMRST
+**
+**  \par Command Structure
+**       #CI_NoArgCmd_t
+**
+**  \par Command Verification
+**       Successful execution of this command may be verified with
+**       the following telemetry:
+**       - \b \c \CI_CMDACTPCNT       - command counter will be cleared
+**       - \b \c \CI_CMDRJCTCNT       - command error counter will be cleared
+**       - The #CI_CMD_INF_EID debug event message will be
+**         generated when the command is executed
+**
+**  \par Error Conditions
+**       This command may fail for the following reason(s):
+**       - Command packet length not as expected
+**
+**  \par Evidence of failure may be found in the following telemetry:
+**       - \b \c \CI_CMDRJCTCNT - command error counter will increment
+**       - Error specific event message #CI_MSGID_ERR_EID
+**
+**  \par Criticality
+**       None
+**
+**  \sa #CI_ARM_CMD_CC
+*/
+#define CI_DUMP_LOG_CC                (7)
+
 /************************************************************************
 ** Local Structure Declarations
 *************************************************************************/
 
-/** \brief  */
-typedef enum
-{
-    STEP_1,
-	STEP_2
-} CI_CmdStep_t;
 
-/** \brief  */
-typedef enum
-{
-	UNAUTHORIZED,
-	AUTHORIZED
-} CI_CmdAuth_t;
-
-/** \brief  */
-typedef enum
-{
-	LOG,
-	EXCLUDE_LOG
-} CI_CmdLog_t;
 
 /** 
 **  \brief No Arguments Command
@@ -124,6 +301,30 @@ typedef struct
 } CI_NoArgCmd_t;
 
 /** 
+**  \brief Command Authorization Data
+**  For command details see #CI_ARM_CMD_CC, #CI_DISARM_CMD_CC
+*/
+typedef struct
+{
+    uint8  				ucCmdHeader[CFE_SB_CMD_HDR_SIZE];
+    CFE_SB_MsgId_t		msgID;
+    uint16				cmdCode;
+} CI_CmdAuthData_t;
+
+/**
+**  \brief Command Register Data
+**  For command details see #CI_REG_CMD_CC, #CI_UPDT_CMD_CC
+*/
+typedef struct
+{
+    uint8  				ucCmdHeader[CFE_SB_CMD_HDR_SIZE];
+    CFE_SB_MsgId_t		msgID;
+    uint16				cmdCode;
+    CI_CmdStep_t		step;
+    CI_CmdLog_t	 		log;
+} CI_CmdRegData_t;
+
+/**
 **  \brief TODO Elaborate this struct
 **  Boilerplate example of application-specific incoming data
 */
@@ -140,20 +341,7 @@ typedef struct
 
 } CI_InData_t;
 
-/** 
-**  \brief Cmd data row for config table
-**  All data affiliated with commmands known to CI
-*/
-typedef struct
-{
-    uint16   		mid;
-    int32	 		code;
-    CI_CmdStep_t	step;
-    CI_CmdAuth_t	state;
-    int32	 		timeout;
-    int	 			RouteCount;
-    CI_CmdLog_t	 	log;
-} CI_CmdData_t;
+
 
 /**
 **  \brief TODO Elaborate this struct

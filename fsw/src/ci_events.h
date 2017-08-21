@@ -339,6 +339,69 @@ typedef enum {
 	*/
 	CI_CMD_DEAUTHORIZED_EID,
 
+	/** \brief <tt> '' </tt>
+	**  \event <tt> '' </tt>
+	**
+	**  \par Type: INFORMATION
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when a command is registered.
+	**
+	*/
+	CI_CMD_REGISTERED_EID,
+
+	/** \brief <tt> '' </tt>
+	**  \event <tt> '' </tt>
+	**
+	**  \par Type: ERROR
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when attempting to register
+	**  a command that is already registered.
+	**
+	*/
+	CI_CMD_ALREADY_REGISTERED_EID,
+
+	/** \brief <tt> '' </tt>
+	**  \event <tt> '' </tt>
+	**
+	**  \par Type: INFORMATION
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when a command is deregistered.
+	**
+	*/
+	CI_CMD_DEREGISTERED_EID,
+
+	/** \brief <tt> '' </tt>
+	**  \event <tt> '' </tt>
+	**
+	**  \par Type: ERROR
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when attempting to deregister
+	**  a command that is not registered.
+	**
+	*/
+	CI_CMD_NOT_REGISTERED_EID,
+
+	/** \brief <tt> '' </tt>
+	**  \event <tt> '' </tt>
+	**
+	**  \par Type: ERROR
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when attempting to register
+	**  a command and an error is encountered.
+	**
+	*/
+	CI_CMD_REG_ERR_EID,
+
 /** \brief <tt> This is a count of all the app events and should not be used. </tt> */
     CI_EVT_CNT
 } CI_EventIds_t;
