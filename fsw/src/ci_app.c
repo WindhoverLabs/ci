@@ -340,10 +340,9 @@ void CI_CleanupCallback()
     CI_AppData.IngestActive = FALSE;
 }
 
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* Receive and Process Messages                                    */
+/* Get Command Table Data Row                                 	   */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -367,6 +366,12 @@ CI_CmdData_t *CI_GetRegisterdCmd(CFE_SB_MsgId_t msgID, uint16 cmdCode)
 	return CmdData;
 }
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* Log Command                                 					   */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 void CI_LogCmd(CFE_SB_Msg_t* MsgPtr)
 {
 	CI_CmdData_t		*CmdData = NULL;
@@ -384,6 +389,12 @@ void CI_LogCmd(CFE_SB_Msg_t* MsgPtr)
 
 	return;
 }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* Authorize Command			                                   */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 void CI_CmdAuthorize(CFE_SB_Msg_t* MsgPtr)
 {
@@ -422,13 +433,19 @@ void CI_CmdAuthorize(CFE_SB_Msg_t* MsgPtr)
 
 		/* Update command data */
 		CmdData->state = AUTHORIZED;
-		CmdData->timeout = CI_TIMEOUT_MSEC;
+		CmdData->timeout = CI_CMD_MAX_TIMEOUT;
 		CFE_EVS_SendEvent (CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd authorized");
 		CI_AppData.HkTlm.usCmdCnt++;
 	}
 
 	return;
 }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* Deauthorize Command 				                               */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 void CI_CmdDeauthorize(CFE_SB_Msg_t* MsgPtr)
 {
@@ -475,6 +492,12 @@ void CI_CmdDeauthorize(CFE_SB_Msg_t* MsgPtr)
 
 	return;
 }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* Register Command				                                   */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 void CI_CmdRegister(CFE_SB_Msg_t* MsgPtr)
 {
@@ -540,6 +563,12 @@ void CI_CmdRegister(CFE_SB_Msg_t* MsgPtr)
 	return;
 }
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* Deregister Command			                                   */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 void CI_CmdDeregister(CFE_SB_Msg_t* MsgPtr)
 {
 	uint16              ExpectedLength = sizeof(CI_CmdAuthData_t);
@@ -585,6 +614,12 @@ void CI_CmdDeregister(CFE_SB_Msg_t* MsgPtr)
 
 	return;
 }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* Update Registered Commands	                                   */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 void CI_UpdateCmdReg(CFE_SB_Msg_t* MsgPtr)
 {
@@ -645,12 +680,18 @@ CI_UpdateCmdReg_Exit_Tag:
 	return;
 }
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* Process Authorized Command Timeouts                             */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 void CI_ProcessTimeouts(void)
 {
-	uint32 				i = 0;
+	uint32 		i = 0;
 
-	while(1) // TODO Replace with guard
-	{
+	//while(1) // TODO Replace with guard
+	//{
 		for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
 		{
 			if(CI_AppData.ConfigTblPtr->cmds[i].step == STEP_2)
@@ -660,7 +701,7 @@ void CI_ProcessTimeouts(void)
 					CI_AppData.ConfigTblPtr->cmds[i].timeout--;
 					if(CI_AppData.ConfigTblPtr->cmds[i].timeout == 0)
 					{
-						CI_AppData.ConfigTblPtr->cmds[i].state == UNAUTHORIZED;
+						CI_AppData.ConfigTblPtr->cmds[i].state = UNAUTHORIZED;
 						CFE_EVS_SendEvent (CI_CMD_AUTH_TIMEOUT_EID,
 										   CFE_EVS_INFORMATION,
 										   "Cmd authorization timeout");
@@ -668,10 +709,16 @@ void CI_ProcessTimeouts(void)
 				}
 			}
 		}
-	}
+	//}
 
 	return;
 }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* Determine Validity of Command                                   */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr, uint32 MsgSize)
 {
@@ -732,6 +779,12 @@ CI_ValidateCmd_Exit_Tag:
 	return bResult;
 }
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* Lookup Command Authorization                                    */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 boolean CI_GetCmdAuthorized(CFE_SB_Msg_t* MsgPtr)
 {
 	boolean 			bResult = FALSE;
@@ -779,7 +832,12 @@ CI_GetCmdAuthorized_Exit_tag:
 	return bResult;
 }
 
-/* TODO:  Add Doxygen markup. */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* Spawn Child Task				                                   */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 int32 CI_InitListenerTask(void)
 {
     int32 Status = CFE_SUCCESS;
@@ -803,8 +861,12 @@ int32 CI_InitListenerTask(void)
 
 }
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* Child Task Listener Main		                                   */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-/* TODO:  Add Doxygen markup. */
 void CI_ListenerTaskMain(void)
 {
     int32 			Status = -1;
@@ -828,15 +890,12 @@ void CI_ListenerTaskMain(void)
 				/* If number of bytes received less than max */
 				if (MsgSize <= CI_MAX_CMD_INGEST)
 				{
-					CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
-
 					/* Verify validity of cmd */
+					CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
 					if (CI_ValidateCmd(CmdMsgPtr, MsgSize) == TRUE)
 					{
-						OS_printf("Cmd valid \n");
-						CmdMsgId = CFE_SB_GetMsgId(CmdMsgPtr);
-
 						/* Check if cmd is for CI and route if so */
+						CmdMsgId = CFE_SB_GetMsgId(CmdMsgPtr);
 						if (CI_CMD_MID == CmdMsgId)
 						{
 							CI_ProcessNewAppCmds(CmdMsgPtr);
@@ -847,7 +906,7 @@ void CI_ListenerTaskMain(void)
 							/* Verify cmd is authorized */
 							if (CI_GetCmdAuthorized(CmdMsgPtr) == TRUE)
 							{
-								OS_printf("Cmd is authorized. Sending... \n");
+								OS_printf("Cmd is authorized. Send itttt \n");
 								CFE_ES_PerfLogEntry(CI_SOCKET_RCV_PERF_ID); // need?
 								CI_AppData.HkTlm.IngestMsgCount++;
 								CFE_SB_SendMsg(CmdMsgPtr);
@@ -1262,7 +1321,7 @@ void CI_AppMain()
 
         CI_UpdateCdsTbl();
         CI_SaveCdsTbl();
-
+        CI_ProcessTimeouts();
     }
 
     /* Stop Performance Log entry */

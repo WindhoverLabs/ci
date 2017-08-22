@@ -30,8 +30,7 @@ extern "C" {
 /************************************************************************
 ** Local Defines
 *************************************************************************/
-#define CI_TIMEOUT_MSEC             	(1000)
-#define CI_MAX_CMD_INGEST           	(CFE_SB_MAX_SB_MSG_SIZE)
+#define CI_MAX_CMD_INGEST           (CFE_SB_MAX_SB_MSG_SIZE)
 #define CI_LISTENER_TASK_NAME  		"CI_LISTENER"
 #define CI_LISTENER_TASK_STACK_SIZE	16000
 #define CI_LISTENER_TASK_PRIORITY	100
