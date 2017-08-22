@@ -369,6 +369,9 @@ typedef struct
     /** \brief Ingest count of errors */
     uint8              IngestErrorCount;
 
+    /** \brief Padding for struct alignment */
+    //uint8              padding[2];
+
 } CI_HkTlm_t;
 
 

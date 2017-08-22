@@ -492,7 +492,7 @@ void CI_CmdAuthorize(CFE_SB_Msg_t* MsgPtr)
 
 		/* Update values */
 		CmdData->state = AUTHORIZED;
-		CI_AppData.TimeoutTblPtr->time[i] = CI_CMD_MAX_TIMEOUT;
+		CI_AppData.TimeoutTbl.time[i] = CI_CMD_MAX_TIMEOUT;
 
 		/* Unlock the mutex */
 		OS_MutSemGive(CI_AppData.ConfigTblMutex);
@@ -555,7 +555,7 @@ void CI_CmdDeauthorize(CFE_SB_Msg_t* MsgPtr)
 
 		/* Update values */
 		CmdData->state = UNAUTHORIZED;
-		CI_AppData.TimeoutTblPtr->time[i] = 0;
+		CI_AppData.TimeoutTbl.time[i] = 0;
 
 		/* Unlock the mutex */
 		OS_MutSemGive(CI_AppData.ConfigTblMutex);
@@ -621,7 +621,7 @@ void CI_CmdRegister(CFE_SB_Msg_t* MsgPtr)
 					CmdData->timeout = 0;
 					CmdData->RouteCount = 0;
 					CmdData->log = regDataPtr->log;
-					CI_AppData.TimeoutTblPtr->time[i] = 0;
+					CI_AppData.TimeoutTbl.time[i] = 0;
 
 					/* Unlock the mutex */
 					OS_MutSemGive(CI_AppData.ConfigTblMutex);
@@ -693,7 +693,7 @@ void CI_CmdDeregister(CFE_SB_Msg_t* MsgPtr)
 				CmdData->timeout = 0;
 				CmdData->RouteCount = 0;
 				CmdData->log = 0;
-				CI_AppData.TimeoutTblPtr->time[i] = 0;
+				CI_AppData.TimeoutTbl.time[i] = 0;
 
 				/* Unlock the mutex */
 				OS_MutSemGive(CI_AppData.ConfigTblMutex);
@@ -768,7 +768,7 @@ void CI_UpdateCmdReg(CFE_SB_Msg_t* MsgPtr)
 				CmdData->timeout = 0;
 				CmdData->RouteCount = 0;
 				CmdData->log = regDataPtr->log;
-				CI_AppData.TimeoutTblPtr->time[i] = 0;
+				CI_AppData.TimeoutTbl.time[i] = 0;
 
 				/* Unlock the mutex */
 				OS_MutSemGive(CI_AppData.ConfigTblMutex);
@@ -810,10 +810,10 @@ void CI_ProcessTimeouts(void)
 	/* Iterate over table and decrement all authorized cmd timeouts */
 	for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
 	{
-		if(CI_AppData.TimeoutTblPtr->time[i] > 0)
+		if(CI_AppData.TimeoutTbl.time[i] > 0)
 		{
-			CI_AppData.TimeoutTblPtr->time[i]--;
-			if(CI_AppData.TimeoutTblPtr->time[i] == 0)
+			CI_AppData.TimeoutTbl.time[i]--;
+			if(CI_AppData.TimeoutTbl.time[i] == 0)
 			{
 				/* Lock the config table mutex */
 				OS_MutSemTake(CI_AppData.ConfigTblMutex);
@@ -949,7 +949,7 @@ boolean CI_GetCmdAuthorized(CFE_SB_Msg_t* MsgPtr)
 
 		/* Update values */
 		CmdData->state = UNAUTHORIZED;
-		CI_AppData.TimeoutTblPtr->time[i] = 0;
+		CI_AppData.TimeoutTbl.time[i] = 0;
 
 		/* Unlock the mutex */
 		OS_MutSemGive(CI_AppData.ConfigTblMutex);

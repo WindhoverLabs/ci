@@ -83,8 +83,8 @@ typedef struct
     /** \brief Timeout Table Handle */
     CFE_TBL_Handle_t  TimeoutTblHdl;
 
-    /** \brief Timeout Table Pointer */
-    CI_TimeoutTblEntry_t*  TimeoutTblPtr;
+    /** \brief Timeout Table */
+    CI_TimeoutTblEntry_t  TimeoutTbl;
 
     /* Critical Data Storage (CDS) table-related */
 

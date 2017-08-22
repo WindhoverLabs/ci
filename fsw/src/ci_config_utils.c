@@ -68,8 +68,8 @@ int32 CI_InitTbls()
 	iStatus = CFE_TBL_Register(&CI_AppData.TimeoutTblHdl,
 							   CI_TIMEOUT_TABLENAME,
 							   (sizeof(CI_TimeoutTblEntry_t) * CI_CONFIG_TABLE_MAX_ENTRIES),
-							   CFE_TBL_OPT_DEFAULT,
-							   CI_ValidateTimeoutTbl);
+							   CFE_TBL_OPT_USR_DEF_ADDR,
+							   0);
 	if (iStatus != CFE_SUCCESS)
 	{
 		/* Note, a critical table could return another nominal code.  If this table is
@@ -96,8 +96,8 @@ int32 CI_InitTbls()
 
     /* Load Timeout table file */
 	iStatus = CFE_TBL_Load(CI_AppData.TimeoutTblHdl,
-						   CFE_TBL_SRC_FILE,
-						   CI_TIMEOUT_TABLE_FILENAME);
+						   CFE_TBL_SRC_ADDRESS,
+						   &CI_AppData.TimeoutTbl);
 	if (iStatus != CFE_SUCCESS)
 	{
 		/* Note, CFE_SUCCESS is for a successful full table load.  If a partial table
@@ -145,38 +145,6 @@ int32 CI_ValidateConfigTbl(void* ConfigTblPtr)
 CI_ValidateConfigTbl_Exit_Tag:
     return (iStatus);
 }
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-/*                                                                 */
-/* Validate Timeout Table                                           */
-/*                                                                 */
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-int32 CI_ValidateTimeoutTbl(void* TimeoutTblPtr)
-{
-    int32  iStatus=0;
-    CI_TimeoutTblEntry_t* CI_ConfigTblPtr = (CI_TimeoutTblEntry_t*)(TimeoutTblPtr);
-
-    if (TimeoutTblPtr == NULL)
-    {
-        iStatus = -1;
-        goto CI_ValidateTimeoutTbl_Exit_Tag;
-    }
-
-    /* TODO:  Add code to validate new data values here.
-    **
-    ** Examples:
-    ** if (CI_ConfigTblPtr->iParam <= 16) {
-    **   (void) CFE_EVS_SendEvent(CI_CONFIG_TABLE_INF_EID, CFE_EVS_ERROR,
-     *                         "Invalid value for Config parameter sParam (%d)",
-    **                         CI_ConfigTblPtr->iParam);
-    ** }
-    **/
-
-CI_ValidateTimeoutTbl_Exit_Tag:
-    return (iStatus);
-}
-
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
@@ -263,13 +231,13 @@ int32 CI_AcquireConfigPointers(void)
 	}
 	else if(iStatus != CFE_SUCCESS)
 	{
-	CI_AppData.ConfigTblPtr = 0;
+		CI_AppData.ConfigTblPtr = 0;
 		(void) CFE_EVS_SendEvent(CI_CONFIG_TABLE_ERR_EID, CFE_EVS_ERROR,
 								 "Failed to get Config table's address (0x%08X)",
 								 (unsigned int)iStatus);
 	}
 
-	iStatus = CFE_TBL_GetAddress((void*)&CI_AppData.TimeoutTblPtr,
+	iStatus = CFE_TBL_GetAddress((void*)&CI_AppData.TimeoutTbl,
 									 CI_AppData.TimeoutTblHdl);
 	if (iStatus == CFE_TBL_INFO_UPDATED)
 	{
@@ -278,7 +246,6 @@ int32 CI_AcquireConfigPointers(void)
 	}
 	else if(iStatus != CFE_SUCCESS)
 	{
-	CI_AppData.TimeoutTblPtr = 0;
 		(void) CFE_EVS_SendEvent(CI_TIMEOUT_TABLE_ERR_EID, CFE_EVS_ERROR,
 								 "Failed to get Timeout table's address (0x%08X)",
 								 (unsigned int)iStatus);
