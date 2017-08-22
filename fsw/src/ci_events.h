@@ -129,6 +129,19 @@ typedef enum {
 
 /** \brief <tt> 'CI - ' </tt>
 **  \event <tt> 'CI - ' </tt>
+**
+**  \par Type: ERROR
+**
+**  \par Cause:
+**
+**  This event message is issued when the CFS CI Task has
+**  had an error with the timeout table.
+**
+*/
+	CI_TIMEOUT_TABLE_ERR_EID,
+
+/** \brief <tt> 'CI - ' </tt>
+**  \event <tt> 'CI - ' </tt>
 **  
 **  \par Type: ERROR
 **
@@ -192,27 +205,73 @@ typedef enum {
 */
     CI_MSGLEN_ERR_EID,
 
-    /* TODO:  Add Doxygen markup. */
+	/** \brief <tt> 'CI - Listener child task failed.  CFE_ES_CreateChildTask returned: 0x%08X' </tt>
+	**  \event <tt> 'CI - Listener child task failed.  CFE_ES_CreateChildTask returned: 0x%08X' </tt>
+	**
+	**  \par Type: ERROR
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when CI has failed to
+	**  create its child listener task.
+	**
+	*/
     CI_LISTENER_CREATE_CHDTASK_ERR_EID,
+
+	/** \brief <tt> 'CI - L%d, cmd %0x %0x dropped, too long' </tt>
+	**  \event <tt> 'CI - L%d, cmd %0x %0x dropped, too long' </tt>
+	**
+	**  \par Type: ERROR
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when CI's listener thread
+	**  received a msg greater than the max allowed size.
+	**
+	*/
     CI_CMD_INGEST_ERR_EID,
+
+	/** \brief <tt> 'CI - Bind socket failed = %d' </tt>
+	**  \event <tt> 'CI - Bind socket failed = %d' </tt>
+	**
+	**  \par Type: ERROR
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when the CI listener
+	**  encounters an error connecting to a socket.
+	**
+	*/
 	CI_SOCKET_ERR_EID,
+
+	/** \brief <tt> 'CI - UDP command input enabled on port %u.' </tt>
+	**  \event <tt> 'CI - UDP command input enabled on port %u.' </tt>
+	**
+	**  \par Type: INFORMATION
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when the CI listener
+	**  successfully binds to a socket.
+	**
+	*/
 	CI_ENA_INF_EID,
 
-	/** \brief <tt> '' </tt>
-	**  \event <tt> '' </tt>
+	/** \brief <tt> 'CI - Rcvd invalid cmd' </tt>
+	**  \event <tt> 'CI - Rcvd invalid cmd' </tt>
 	**
 	**  \par Type: ERROR
 	**
 	**  \par Cause:
 	**
 	**  This event message is issued when the CFS CI Task has
-	**  encountered an issue with a received command
+	**  encountered an issue with a received command.
 	**
 	*/
 	CI_CMD_INVALID_EID,
 
-	/** \brief <tt> '' </tt>
-	**  \event <tt> '' </tt>
+	/** \brief <tt> 'CI - Cmd not authorized' </tt>
+	**  \event <tt> 'CI - Cmd not authorized' </tt>
 	**
 	**  \par Type: ERROR
 	**
@@ -224,8 +283,8 @@ typedef enum {
 	*/
 	CI_CMD_UNAUTHORIZED_EID,
 
-	/** \brief <tt> '' </tt>
-	**  \event <tt> '' </tt>
+	/** \brief <tt> 'CI - Cmd authorization timeout' </tt>
+	**  \event <tt> 'CI - Cmd authorization timeout' </tt>
 	**
 	**  \par Type: INFORMATION
 	**
@@ -237,21 +296,21 @@ typedef enum {
 	*/
 	CI_CMD_AUTH_TIMEOUT_EID,
 
-	/** \brief <tt> '' </tt>
-	**  \event <tt> '' </tt>
+	/** \brief <tt> 'CI - Cmd not registered' </tt>
+	**  \event <tt> 'CI - Cmd not registered' </tt>
 	**
 	**  \par Type: ERROR
 	**
 	**  \par Cause:
 	**
-	**  This event message is issued when a command
-	**  is not registered.
+	**  This event message is issued when attempting to
+	**  authorize a command that is not registered.
 	**
 	*/
 	CI_CMD_AUTH_NOT_REG_EID,
 
-	/** \brief <tt> '' </tt>
-	**  \event <tt> '' </tt>
+	/** \brief <tt> 'CI - Cmd not 2-step' </tt>
+	**  \event <tt> 'CI - Cmd not 2-step' </tt>
 	**
 	**  \par Type: ERROR
 	**
@@ -263,8 +322,8 @@ typedef enum {
 	*/
 	CI_CMD_AUTH_INV_MODE_EID,
 
-	/** \brief <tt> '' </tt>
-	**  \event <tt> '' </tt>
+	/** \brief <tt> 'CI - Cmd already authorized' </tt>
+	**  \event <tt> 'CI - Cmd already authorized' </tt>
 	**
 	**  \par Type: ERROR
 	**
@@ -276,8 +335,8 @@ typedef enum {
 	*/
 	CI_CMD_AUTH_INV_STATE_EID,
 
-	/** \brief <tt> '' </tt>
-	**  \event <tt> '' </tt>
+	/** \brief <tt> 'CI - Cmd authorized' </tt>
+	**  \event <tt> 'CI - Cmd authorized' </tt>
 	**
 	**  \par Type: INFORMATION
 	**
@@ -288,8 +347,8 @@ typedef enum {
 	*/
 	CI_CMD_AUTHORIZED_EID,
 
-	/** \brief <tt> '' </tt>
-	**  \event <tt> '' </tt>
+	/** \brief <tt> 'CI - Cmd not registered' </tt>
+	**  \event <tt> 'CI - Cmd not registered' </tt>
 	**
 	**  \par Type: ERROR
 	**
@@ -301,8 +360,8 @@ typedef enum {
 	*/
 	CI_CMD_DEAUTH_NOT_REG_EID,
 
-	/** \brief <tt> '' </tt>
-	**  \event <tt> '' </tt>
+	/** \brief <tt> 'CI - Cmd not 2-step' </tt>
+	**  \event <tt> 'CI - Cmd not 2-step' </tt>
 	**
 	**  \par Type: ERROR
 	**
@@ -314,8 +373,8 @@ typedef enum {
 	*/
 	CI_CMD_DEAUTH_INV_MODE_EID,
 
-	/** \brief <tt> '' </tt>
-	**  \event <tt> '' </tt>
+	/** \brief <tt> 'CI - Cmd not authorized' </tt>
+	**  \event <tt> 'CI - Cmd not authorized' </tt>
 	**
 	**  \par Type: ERROR
 	**
@@ -327,8 +386,8 @@ typedef enum {
 	*/
 	CI_CMD_DEAUTH_INV_STATE_EID,
 
-	/** \brief <tt> '' </tt>
-	**  \event <tt> '' </tt>
+	/** \brief <tt> 'CI - Cmd deauthorized' </tt>
+	**  \event <tt> 'CI - Cmd deauthorized' </tt>
 	**
 	**  \par Type: INFORMATION
 	**
@@ -339,8 +398,8 @@ typedef enum {
 	*/
 	CI_CMD_DEAUTHORIZED_EID,
 
-	/** \brief <tt> '' </tt>
-	**  \event <tt> '' </tt>
+	/** \brief <tt> 'CI - Cmd registered' </tt>
+	**  \event <tt> 'CI - Cmd registered' </tt>
 	**
 	**  \par Type: INFORMATION
 	**
@@ -351,8 +410,8 @@ typedef enum {
 	*/
 	CI_CMD_REGISTERED_EID,
 
-	/** \brief <tt> '' </tt>
-	**  \event <tt> '' </tt>
+	/** \brief <tt> 'CI - Cmd already registered' </tt>
+	**  \event <tt> 'CI - Cmd already registered' </tt>
 	**
 	**  \par Type: ERROR
 	**
@@ -364,8 +423,8 @@ typedef enum {
 	*/
 	CI_CMD_ALREADY_REGISTERED_EID,
 
-	/** \brief <tt> '' </tt>
-	**  \event <tt> '' </tt>
+	/** \brief <tt> 'CI - Cmd deregistered' </tt>
+	**  \event <tt> 'CI - Cmd deregistered' </tt>
 	**
 	**  \par Type: INFORMATION
 	**
@@ -376,8 +435,8 @@ typedef enum {
 	*/
 	CI_CMD_DEREGISTERED_EID,
 
-	/** \brief <tt> '' </tt>
-	**  \event <tt> '' </tt>
+	/** \brief <tt> 'CI - Cmd not registered' </tt>
+	**  \event <tt> 'CI - Cmd not registered' </tt>
 	**
 	**  \par Type: ERROR
 	**
@@ -389,8 +448,8 @@ typedef enum {
 	*/
 	CI_CMD_NOT_REGISTERED_EID,
 
-	/** \brief <tt> '' </tt>
-	**  \event <tt> '' </tt>
+	/** \brief <tt> 'CI - Unable to register cmd' </tt>
+	**  \event <tt> 'CI - Unable to register cmd' </tt>
 	**
 	**  \par Type: ERROR
 	**
@@ -402,8 +461,8 @@ typedef enum {
 	*/
 	CI_CMD_REG_ERR_EID,
 
-	/** \brief <tt> '' </tt>
-	**  \event <tt> '' </tt>
+	/** \brief <tt> 'CI - Invalid state of command to update' </tt>
+	**  \event <tt> 'CI - Invalid state of command to update' </tt>
 	**
 	**  \par Type: ERROR
 	**
@@ -413,6 +472,18 @@ typedef enum {
 	**  a 2-step registered command while it is authorized
 	*/
 	CI_CMD_UPDT_REG_INVLD_STATE_EID,
+
+	/** \brief <tt> 'CI - Cmd updated' </tt>
+	**  \event <tt> 'CI - Cmd updated' </tt>
+	**
+	**  \par Type: INFORMATION
+	**
+	**  \par Cause:
+	**
+	**  This event message is issued when a command registration is updated.
+	**
+	*/
+	CI_CMD_UPDATE_REG_EID,
 
 /** \brief <tt> This is a count of all the app events and should not be used. </tt> */
     CI_EVT_CNT

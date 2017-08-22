@@ -57,7 +57,7 @@ extern "C" {
 **  \endreturns
 **
 *************************************************************************/
-int32  CI_InitConfigTbl(void);
+int32  CI_InitTbls(void);
 
 /************************************************************************/
 /** \brief Validate CI Config table
@@ -74,6 +74,22 @@ int32  CI_InitConfigTbl(void);
 **
 *************************************************************************/
 int32  CI_ValidateConfigTbl(void*);
+
+/************************************************************************/
+/** \brief Validate CI Timeout
+**
+**  \par Description
+**       This function validates CI's Timeout table
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \returns
+**  \retcode #CFE_SUCCESS  \retdesc \copydoc CFE_SUCCESS  \endcode
+**  \endreturns
+**
+*************************************************************************/
+int32  CI_ValidateTimeoutTbl(void*);
 
 /************************************************************************/
 /** \brief Obtain CI Config Table Data Pointer
@@ -108,6 +124,23 @@ int32 CI_AcquireConfigPointers(void);
 **
 *************************************************************************/
 void   CI_ProcessNewConfigTbl(void);
+
+/************************************************************************/
+/** \brief Process new CI Timeout table
+**
+**  \par Description
+**       This function processes CI's new Timeout table
+**       and set Timeout parameters with new values.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \returns
+**  \retcode #CFE_SUCCESS  \retdesc \copydoc CFE_SUCCESS  \endcode
+**  \endreturns
+**
+*************************************************************************/
+void   CI_ProcessNewTimeoutTbl(void);
 
 
 #ifdef __cplusplus

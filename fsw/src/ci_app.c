@@ -129,6 +129,16 @@ int32 CI_InitPipe()
             goto CI_InitPipe_Exit_Tag;
         }
 
+        iStatus = CFE_SB_SubscribeEx(CI_PROCESS_TIMEOUTS_MID, CI_AppData.SchPipeId, CFE_SB_Default_Qos, CI_SCH_PIPE_PROC_TIMEOUT_RESERVED);
+
+		if (iStatus != CFE_SUCCESS)
+		{
+			(void) CFE_EVS_SendEvent(CI_INIT_ERR_EID, CFE_EVS_ERROR,
+									 "CMD Pipe failed to subscribe to CI_PROCESS_TIMEOUTS_MID. (0x%08X)",
+									 (unsigned int)iStatus);
+			goto CI_InitPipe_Exit_Tag;
+		}
+
     }
     else
     {
@@ -255,7 +265,7 @@ int32 CI_InitApp()
         goto CI_InitApp_Exit_Tag;
     }
 
-    iStatus = CI_InitConfigTbl();
+    iStatus = CI_InitTbls();
     if (iStatus != CFE_SUCCESS)
     {
         (void) CFE_EVS_SendEvent(CI_INIT_ERR_EID, CFE_EVS_ERROR,
@@ -338,6 +348,8 @@ void CI_CleanupCallback()
 {
     CI_CleanupCustom();
     CI_AppData.IngestActive = FALSE;
+	OS_MutSemGive(CI_AppData.ConfigTblMutex);
+	OS_MutSemGive(CI_AppData.TimeoutTblMutex);
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -351,6 +363,9 @@ CI_CmdData_t *CI_GetRegisterdCmd(CFE_SB_MsgId_t msgID, uint16 cmdCode)
 	uint32 				i = 0;
 	CI_CmdData_t		*CmdData = NULL;
 
+	/* Lock the mutex */
+	OS_MutSemTake(CI_AppData.ConfigTblMutex);
+
 	/* Get command from config table with same params */
 	for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
 	{
@@ -363,7 +378,44 @@ CI_CmdData_t *CI_GetRegisterdCmd(CFE_SB_MsgId_t msgID, uint16 cmdCode)
 		}
 	}
 
+	/* Unlock the mutex */
+	OS_MutSemGive(CI_AppData.ConfigTblMutex);
+
 	return CmdData;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* Get Command Table Data Row Index	                          	   */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+uint32 CI_GetRegisterdCmdIdx(CFE_SB_MsgId_t msgID, uint16 cmdCode)
+{
+	uint32 				i = -1;
+
+	/* Lock the mutex */
+	OS_MutSemTake(CI_AppData.ConfigTblMutex);
+
+	/* Get command from config table with same params */
+	for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
+	{
+		if(CI_AppData.ConfigTblPtr->cmds[i].mid == msgID)
+		{
+			if(CI_AppData.ConfigTblPtr->cmds[i].code == cmdCode)
+			{
+				goto CI_GetRegisterdCmdIdx_Exit_Tag;
+			}
+		}
+	}
+
+	i = -1;
+
+CI_GetRegisterdCmdIdx_Exit_Tag:
+	/* Unlock the mutex */
+	OS_MutSemGive(CI_AppData.ConfigTblMutex);
+
+	return i;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -401,6 +453,7 @@ void CI_CmdAuthorize(CFE_SB_Msg_t* MsgPtr)
 	uint16              ExpectedLength = sizeof(CI_CmdAuthData_t);
 	CI_CmdData_t		*CmdData = NULL;
 	CI_CmdAuthData_t 	*authDataPtr;
+	uint32				i = -1;
 
 	/* Verify command packet length */
 	if (CI_VerifyCmdLength (MsgPtr, ExpectedLength))
@@ -431,9 +484,20 @@ void CI_CmdAuthorize(CFE_SB_Msg_t* MsgPtr)
 			return;
 		}
 
-		/* Update command data */
+		i = CI_GetRegisterdCmdIdx(authDataPtr->msgID, authDataPtr->cmdCode);
+
+		/* Lock the mutex */
+		OS_MutSemTake(CI_AppData.ConfigTblMutex);
+		OS_MutSemTake(CI_AppData.TimeoutTblMutex);
+
+		/* Update values */
 		CmdData->state = AUTHORIZED;
-		CmdData->timeout = CI_CMD_MAX_TIMEOUT;
+		CI_AppData.TimeoutTblPtr->time[i] = CI_CMD_MAX_TIMEOUT;
+
+		/* Unlock the mutex */
+		OS_MutSemGive(CI_AppData.ConfigTblMutex);
+		OS_MutSemGive(CI_AppData.TimeoutTblMutex);
+
 		CFE_EVS_SendEvent (CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd authorized");
 		CI_AppData.HkTlm.usCmdCnt++;
 	}
@@ -452,6 +516,7 @@ void CI_CmdDeauthorize(CFE_SB_Msg_t* MsgPtr)
 	uint16              ExpectedLength = sizeof(CI_CmdAuthData_t);
 	CI_CmdData_t		*CmdData = NULL;
 	CI_CmdAuthData_t 	*authDataPtr;
+	uint32				i = -1;
 
 	/* Verify command packet length */
 	if (CI_VerifyCmdLength (MsgPtr, ExpectedLength))
@@ -482,9 +547,20 @@ void CI_CmdDeauthorize(CFE_SB_Msg_t* MsgPtr)
 			return;
 		}
 
-		/* Update command data */
+		i = CI_GetRegisterdCmdIdx(authDataPtr->msgID, authDataPtr->cmdCode);
+
+		/* Lock the mutex */
+		OS_MutSemTake(CI_AppData.ConfigTblMutex);
+		OS_MutSemTake(CI_AppData.TimeoutTblMutex);
+
+		/* Update values */
 		CmdData->state = UNAUTHORIZED;
-		CmdData->timeout = 0; // Need?
+		CI_AppData.TimeoutTblPtr->time[i] = 0;
+
+		/* Unlock the mutex */
+		OS_MutSemGive(CI_AppData.ConfigTblMutex);
+		OS_MutSemGive(CI_AppData.TimeoutTblMutex);
+
 		CFE_EVS_SendEvent (CI_CMD_DEAUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd deauthorized");
 		CI_AppData.HkTlm.usCmdCnt++;
 	}
@@ -517,6 +593,9 @@ void CI_CmdRegister(CFE_SB_Msg_t* MsgPtr)
 			CmdData = CI_GetRegisterdCmd(regDataPtr->msgID, regDataPtr->cmdCode);
 			if (CmdData == NULL)
 			{
+				/* Lock the mutex */
+				OS_MutSemTake(CI_AppData.ConfigTblMutex);
+
 				/* Find first unused index in config table to add command */
 				for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
 				{
@@ -530,6 +609,11 @@ void CI_CmdRegister(CFE_SB_Msg_t* MsgPtr)
 				/* If entry isn't NULL set to passed params */
 				if(CmdData != NULL)
 				{
+					/* Lock the mutex */
+					OS_MutSemTake(CI_AppData.ConfigTblMutex);
+					OS_MutSemTake(CI_AppData.TimeoutTblMutex);
+
+					/* Update values */
 					CmdData->mid = regDataPtr->msgID;
 					CmdData->code = regDataPtr->cmdCode;
 					CmdData->step = regDataPtr->step;
@@ -537,6 +621,11 @@ void CI_CmdRegister(CFE_SB_Msg_t* MsgPtr)
 					CmdData->timeout = 0;
 					CmdData->RouteCount = 0;
 					CmdData->log = regDataPtr->log;
+					CI_AppData.TimeoutTblPtr->time[i] = 0;
+
+					/* Unlock the mutex */
+					OS_MutSemGive(CI_AppData.ConfigTblMutex);
+					OS_MutSemGive(CI_AppData.TimeoutTblMutex);
 
 					CFE_EVS_SendEvent (CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "Cmd registered");
 					CI_AppData.HkTlm.usCmdCnt++;
@@ -546,6 +635,9 @@ void CI_CmdRegister(CFE_SB_Msg_t* MsgPtr)
 					CFE_EVS_SendEvent (CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to register cmd");
 					CI_AppData.HkTlm.usCmdErrCnt++;
 				}
+
+				/* Unlock the mutex */
+				OS_MutSemGive(CI_AppData.ConfigTblMutex);
 			}
 			else
 			{
@@ -587,7 +679,13 @@ void CI_CmdDeregister(CFE_SB_Msg_t* MsgPtr)
 			CmdData = CI_GetRegisterdCmd(regDataPtr->msgID, regDataPtr->cmdCode);
 			if (CmdData != NULL)
 			{
-				/* Reset values */
+				i = CI_GetRegisterdCmdIdx(regDataPtr->msgID, regDataPtr->cmdCode);
+
+				/* Lock the mutex */
+				OS_MutSemTake(CI_AppData.ConfigTblMutex);
+				OS_MutSemTake(CI_AppData.TimeoutTblMutex);
+
+				/* Update values */
 				CmdData->mid = 0;
 				CmdData->code = 0;
 				CmdData->step = 0;
@@ -595,6 +693,11 @@ void CI_CmdDeregister(CFE_SB_Msg_t* MsgPtr)
 				CmdData->timeout = 0;
 				CmdData->RouteCount = 0;
 				CmdData->log = 0;
+				CI_AppData.TimeoutTblPtr->time[i] = 0;
+
+				/* Unlock the mutex */
+				OS_MutSemGive(CI_AppData.ConfigTblMutex);
+				OS_MutSemGive(CI_AppData.TimeoutTblMutex);
 
 				CFE_EVS_SendEvent (CI_CMD_DEREGISTERED_EID, CFE_EVS_INFORMATION, "Cmd deregistered");
 				CI_AppData.HkTlm.usCmdCnt++;
@@ -607,7 +710,7 @@ void CI_CmdDeregister(CFE_SB_Msg_t* MsgPtr)
 		}
 		else
 		{
-			CFE_EVS_SendEvent (CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to register cmd");
+			CFE_EVS_SendEvent (CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to deregister cmd");
 			CI_AppData.HkTlm.usCmdErrCnt++;
 		}
 	}
@@ -651,6 +754,12 @@ void CI_UpdateCmdReg(CFE_SB_Msg_t* MsgPtr)
 					}
 				}
 
+				i = CI_GetRegisterdCmdIdx(regDataPtr->msgID, regDataPtr->cmdCode);
+
+				/* Lock the mutex */
+				OS_MutSemTake(CI_AppData.ConfigTblMutex);
+				OS_MutSemTake(CI_AppData.TimeoutTblMutex);
+
 				/* Update values */
 				CmdData->mid = regDataPtr->msgID;
 				CmdData->code = regDataPtr->cmdCode;
@@ -659,8 +768,13 @@ void CI_UpdateCmdReg(CFE_SB_Msg_t* MsgPtr)
 				CmdData->timeout = 0;
 				CmdData->RouteCount = 0;
 				CmdData->log = regDataPtr->log;
+				CI_AppData.TimeoutTblPtr->time[i] = 0;
 
-				CFE_EVS_SendEvent (CI_CMD_DEREGISTERED_EID, CFE_EVS_INFORMATION, "Cmd updated");
+				/* Unlock the mutex */
+				OS_MutSemGive(CI_AppData.ConfigTblMutex);
+				OS_MutSemGive(CI_AppData.TimeoutTblMutex);
+
+				CFE_EVS_SendEvent (CI_CMD_UPDATE_REG_EID, CFE_EVS_INFORMATION, "Cmd updated");
 				CI_AppData.HkTlm.usCmdCnt++;
 			}
 			else
@@ -690,26 +804,34 @@ void CI_ProcessTimeouts(void)
 {
 	uint32 		i = 0;
 
-	//while(1) // TODO Replace with guard
-	//{
-		for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
+	/* Lock the timeout table mutex */
+	OS_MutSemTake(CI_AppData.TimeoutTblMutex);
+
+	/* Iterate over table and decrement all authorized cmd timeouts */
+	for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
+	{
+		if(CI_AppData.TimeoutTblPtr->time[i] > 0)
 		{
-			if(CI_AppData.ConfigTblPtr->cmds[i].step == STEP_2)
+			CI_AppData.TimeoutTblPtr->time[i]--;
+			if(CI_AppData.TimeoutTblPtr->time[i] == 0)
 			{
-				if(CI_AppData.ConfigTblPtr->cmds[i].state == AUTHORIZED)
-				{
-					CI_AppData.ConfigTblPtr->cmds[i].timeout--;
-					if(CI_AppData.ConfigTblPtr->cmds[i].timeout == 0)
-					{
-						CI_AppData.ConfigTblPtr->cmds[i].state = UNAUTHORIZED;
-						CFE_EVS_SendEvent (CI_CMD_AUTH_TIMEOUT_EID,
-										   CFE_EVS_INFORMATION,
-										   "Cmd authorization timeout");
-					}
-				}
+				/* Lock the config table mutex */
+				OS_MutSemTake(CI_AppData.ConfigTblMutex);
+
+				CI_AppData.ConfigTblPtr->cmds[i].state = UNAUTHORIZED;
+
+				/* Unlock the config table mutex */
+				OS_MutSemGive(CI_AppData.ConfigTblMutex);
+
+				CFE_EVS_SendEvent (CI_CMD_AUTH_TIMEOUT_EID,
+								   CFE_EVS_INFORMATION,
+								   "Cmd authorization timeout");
 			}
 		}
-	//}
+	}
+
+	/* Unlock the timeout table mutex */
+	OS_MutSemGive(CI_AppData.TimeoutTblMutex);
 
 	return;
 }
@@ -729,21 +851,21 @@ boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr, uint32 MsgSize)
 	/* Verify CCSDS version */
 	if (CCSDS_RD_VERS(MsgPtr->Hdr) != 0)
 	{
-		OS_printf("ccsds \n");
+		//OS_printf("ccsds \n");
 		goto CI_ValidateCmd_Exit_Tag;
 	}
 
 	/* Verify secondary header present */
 	if (CCSDS_RD_SHDR(MsgPtr->Hdr) == 0)
 	{
-		OS_printf("sec \n");
+		//OS_printf("sec \n");
 		goto CI_ValidateCmd_Exit_Tag;
 	}
 
 	/* Verify packet type is cmd */
 	if (CCSDS_RD_TYPE(MsgPtr->Hdr) != CCSDS_CMD)
 	{
-		OS_printf("cmd \n");
+		//OS_printf("cmd \n");
 		goto CI_ValidateCmd_Exit_Tag;
 	}
 
@@ -791,6 +913,7 @@ boolean CI_GetCmdAuthorized(CFE_SB_Msg_t* MsgPtr)
 	CFE_SB_MsgId_t  	msgID = 0;
 	CI_CmdData_t		*CmdData = NULL;
 	uint16 				cmdCode = 0;
+	uint32 				i = 0;
 
 	/* Check if command is not registered */
 	msgID = CFE_SB_GetMsgId(MsgPtr);
@@ -800,7 +923,6 @@ boolean CI_GetCmdAuthorized(CFE_SB_Msg_t* MsgPtr)
 	{
 		if (CI_AppData.IngestBehavior == BHV_OPTIMISTIC)
 		{
-			OS_printf("optimistic \n");
 			bResult = TRUE;
 		}
 
@@ -818,7 +940,21 @@ boolean CI_GetCmdAuthorized(CFE_SB_Msg_t* MsgPtr)
 	if (CmdData->state == AUTHORIZED)
 	{
 		bResult = TRUE;
+
+		i = CI_GetRegisterdCmdIdx(msgID, cmdCode);
+
+		/* Lock the mutex */
+		OS_MutSemTake(CI_AppData.ConfigTblMutex);
+		OS_MutSemTake(CI_AppData.TimeoutTblMutex);
+
+		/* Update values */
 		CmdData->state = UNAUTHORIZED;
+		CI_AppData.TimeoutTblPtr->time[i] = 0;
+
+		/* Unlock the mutex */
+		OS_MutSemGive(CI_AppData.ConfigTblMutex);
+		OS_MutSemGive(CI_AppData.TimeoutTblMutex);
+
 		goto CI_GetCmdAuthorized_Exit_tag;
 	}
 
@@ -842,23 +978,38 @@ int32 CI_InitListenerTask(void)
 {
     int32 Status = CFE_SUCCESS;
 
-    Status= CFE_ES_CreateChildTask(&CI_AppData.ListenerTaskID,
-                                   CI_LISTENER_TASK_NAME,
-                                   CI_ListenerTaskMain,
-                                   NULL,
-                                   CI_LISTENER_TASK_STACK_SIZE,
-                                   CI_LISTENER_TASK_PRIORITY,
-                                   0);
-    if (Status != CFE_SUCCESS)
-    {
-        CFE_EVS_SendEvent (CI_LISTENER_CREATE_CHDTASK_ERR_EID,
-                           CFE_EVS_ERROR,
-                           "Listener child task failed.  CFE_ES_CreateChildTask returned: 0x%08X",
-                           Status);
-    }
+    Status = OS_MutSemCreate(&CI_AppData.ConfigTblMutex, CI_CFG_TBL_MUTEX_NAME, 0);
+	if (Status != CFE_SUCCESS)
+	{
+		OS_printf("Create config mutex failed \n\n\n");
+		goto CI_InitListenerTask_Exit_Tag;
+	}
+
+	Status = OS_MutSemCreate(&CI_AppData.TimeoutTblMutex, CI_TIME_TBL_MUTEX_NAME, 0);
+	if (Status != CFE_SUCCESS)
+	{
+		OS_printf("Create timeout mutex failed \n\n\n");//TODO
+		goto CI_InitListenerTask_Exit_Tag;
+	}
+
+	Status= CFE_ES_CreateChildTask(&CI_AppData.ListenerTaskID,
+								   CI_LISTENER_TASK_NAME,
+								   CI_ListenerTaskMain,
+								   NULL,
+								   CI_LISTENER_TASK_STACK_SIZE,
+								   CI_LISTENER_TASK_PRIORITY,
+								   0);
+	if (Status != CFE_SUCCESS)
+	{
+		CFE_EVS_SendEvent (CI_LISTENER_CREATE_CHDTASK_ERR_EID,
+						   CFE_EVS_ERROR,
+						   "Listener child task failed.  CFE_ES_CreateChildTask returned: 0x%08X",
+						   Status);
+	}
+
+CI_InitListenerTask_Exit_Tag:
 
     return Status;
-
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -906,7 +1057,6 @@ void CI_ListenerTaskMain(void)
 							/* Verify cmd is authorized */
 							if (CI_GetCmdAuthorized(CmdMsgPtr) == TRUE)
 							{
-								OS_printf("Cmd is authorized. Send itttt \n");
 								CFE_ES_PerfLogEntry(CI_SOCKET_RCV_PERF_ID); // need?
 								CI_AppData.HkTlm.IngestMsgCount++;
 								CFE_SB_SendMsg(CmdMsgPtr);
@@ -958,12 +1108,8 @@ int32 CI_RcvMsg(int32 iBlocking)
     /* Stop Performance Log entry */
     CFE_ES_PerfLogExit(CI_MAIN_TASK_PERF_ID);
 
-    (void) CFE_TBL_ReleaseAddress(CI_AppData.ConfigTblHdl);
-
     /* Wait for WakeUp messages from scheduler */
     iStatus = CFE_SB_RcvMsg(&MsgPtr, CI_AppData.SchPipeId, iBlocking);
-
-    CI_AcquireConfigPointers();
 
     /* Start Performance Log entry */
     CFE_ES_PerfLogEntry(CI_MAIN_TASK_PERF_ID);
@@ -976,7 +1122,6 @@ int32 CI_RcvMsg(int32 iBlocking)
             case CI_WAKEUP_MID:
                 CI_ProcessNewCmds();
                 CI_ProcessNewData();
-
                 /* TODO:  Add more code here to handle other things when app wakes up */
 
                 /* The last thing to do at the end of this Wakeup cycle should be to
@@ -987,6 +1132,10 @@ int32 CI_RcvMsg(int32 iBlocking)
             case CI_SEND_HK_MID:
                 CI_ReportHousekeeping();
                 break;
+
+            case CI_PROCESS_TIMEOUTS_MID:
+            	CI_ProcessTimeouts();
+				break;
 
             default:
                 (void) CFE_EVS_SendEvent(CI_MSGID_ERR_EID, CFE_EVS_ERROR,
@@ -1165,11 +1314,11 @@ void CI_ProcessNewAppCmds(CFE_SB_Msg_t* MsgPtr)
                                   "Recvd RESET cmd (%u)", (unsigned int)uiCmdCode);
                 break;
 
-            case CI_ARM_CMD_CC:
+            case CI_AUTH_CMD_CC:
             	CI_CmdAuthorize(MsgPtr);
 				break;
 
-            case CI_DISARM_CMD_CC:
+            case CI_DEAUTH_CMD_CC:
             	CI_CmdDeauthorize(MsgPtr);
 				break;
 
@@ -1321,7 +1470,6 @@ void CI_AppMain()
 
         CI_UpdateCdsTbl();
         CI_SaveCdsTbl();
-        CI_ProcessTimeouts();
     }
 
     /* Stop Performance Log entry */

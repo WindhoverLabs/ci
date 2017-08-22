@@ -44,7 +44,7 @@ extern CI_AppData_t  CI_AppData;
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-int32 CI_InitConfigTbl()
+int32 CI_InitTbls()
 {
     int32  iStatus=0;
 
@@ -61,8 +61,24 @@ int32 CI_InitConfigTbl()
         (void) CFE_EVS_SendEvent(CI_INIT_ERR_EID, CFE_EVS_ERROR,
                                  "Failed to register Config table (0x%08X)",
                                  (unsigned int)iStatus);
-        goto CI_InitConfigTbl_Exit_Tag;
+        goto CI_InitTbls_Exit_Tag;
     }
+
+    /* Register Timeout table */
+	iStatus = CFE_TBL_Register(&CI_AppData.TimeoutTblHdl,
+							   CI_TIMEOUT_TABLENAME,
+							   (sizeof(CI_TimeoutTblEntry_t) * CI_CONFIG_TABLE_MAX_ENTRIES),
+							   CFE_TBL_OPT_DEFAULT,
+							   CI_ValidateTimeoutTbl);
+	if (iStatus != CFE_SUCCESS)
+	{
+		/* Note, a critical table could return another nominal code.  If this table is
+		 * made critical this logic would have to change. */
+		(void) CFE_EVS_SendEvent(CI_INIT_ERR_EID, CFE_EVS_ERROR,
+								 "Failed to register Timeout table (0x%08X)",
+								 (unsigned int)iStatus);
+		goto CI_InitTbls_Exit_Tag;
+	}
 
     /* Load Config table file */
     iStatus = CFE_TBL_Load(CI_AppData.ConfigTblHdl,
@@ -75,12 +91,26 @@ int32 CI_InitConfigTbl()
         (void) CFE_EVS_SendEvent(CI_INIT_ERR_EID, CFE_EVS_ERROR,
                                  "Failed to load Config Table (0x%08X)",
                                  (unsigned int)iStatus);
-        goto CI_InitConfigTbl_Exit_Tag;
+        goto CI_InitTbls_Exit_Tag;
     }
+
+    /* Load Timeout table file */
+	iStatus = CFE_TBL_Load(CI_AppData.TimeoutTblHdl,
+						   CFE_TBL_SRC_FILE,
+						   CI_TIMEOUT_TABLE_FILENAME);
+	if (iStatus != CFE_SUCCESS)
+	{
+		/* Note, CFE_SUCCESS is for a successful full table load.  If a partial table
+		   load is desired then this logic would have to change. */
+		(void) CFE_EVS_SendEvent(CI_INIT_ERR_EID, CFE_EVS_ERROR,
+								 "Failed to load Timeout Table (0x%08X)",
+								 (unsigned int)iStatus);
+		goto CI_InitTbls_Exit_Tag;
+	}
 
     iStatus = CI_AcquireConfigPointers();
 
-CI_InitConfigTbl_Exit_Tag:
+CI_InitTbls_Exit_Tag:
     return (iStatus);
 }
 
@@ -116,6 +146,37 @@ CI_ValidateConfigTbl_Exit_Tag:
     return (iStatus);
 }
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* Validate Timeout Table                                           */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+int32 CI_ValidateTimeoutTbl(void* TimeoutTblPtr)
+{
+    int32  iStatus=0;
+    CI_TimeoutTblEntry_t* CI_ConfigTblPtr = (CI_TimeoutTblEntry_t*)(TimeoutTblPtr);
+
+    if (TimeoutTblPtr == NULL)
+    {
+        iStatus = -1;
+        goto CI_ValidateTimeoutTbl_Exit_Tag;
+    }
+
+    /* TODO:  Add code to validate new data values here.
+    **
+    ** Examples:
+    ** if (CI_ConfigTblPtr->iParam <= 16) {
+    **   (void) CFE_EVS_SendEvent(CI_CONFIG_TABLE_INF_EID, CFE_EVS_ERROR,
+     *                         "Invalid value for Config parameter sParam (%d)",
+    **                         CI_ConfigTblPtr->iParam);
+    ** }
+    **/
+
+CI_ValidateTimeoutTbl_Exit_Tag:
+    return (iStatus);
+}
+
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
@@ -136,42 +197,92 @@ void CI_ProcessNewConfigTbl()
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
+/* Process New Timeout Table                                        */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+void CI_ProcessNewTimeoutTbl()
+{
+    /* TODO:  Add code to set new Config parameters with new values here.
+    **
+    ** Examples:
+    **
+    **    CI_AppData.latest_sParam = CI_AppData.ConfigTblPtr->sParam;
+    **    CI_AppData.latest_fParam = CI.AppData.ConfigTblPtr->fParam;
+    */
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
 /* Acquire Conifg Pointers                                         */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 int32 CI_AcquireConfigPointers(void)
 {
-    int32 iStatus = CFE_SUCCESS;
+	 int32 iStatus = CFE_SUCCESS;
 
-    /*
-    ** Manage the table
-    */
-    iStatus = CFE_TBL_Manage(CI_AppData.ConfigTblHdl);
-    if ((iStatus != CFE_SUCCESS) && (iStatus != CFE_TBL_INFO_UPDATED))
-    {
-        (void) CFE_EVS_SendEvent(CI_CONFIG_TABLE_ERR_EID, CFE_EVS_ERROR,
-                                 "Failed to manage Config table (0x%08X)",
-                                 (unsigned int)iStatus);
-        goto CI_AcquireConfigPointers_Exit_Tag;
-    }
+	/*
+	** Release the table
+	*/
+	/* TODO: This return value can indicate success, error, or that the info has been
+	 * updated.  We ignore this return value in favor of checking CFE_TBL_Manage(), but
+	 * be sure this is the behavior you want. */
+	(void) CFE_TBL_ReleaseAddress(CI_AppData.ConfigTblHdl);
+	(void) CFE_TBL_ReleaseAddress(CI_AppData.TimeoutTblHdl);
 
-    /*
-    ** Get a pointer to the table
-    */
-    iStatus = CFE_TBL_GetAddress((void*)&CI_AppData.ConfigTblPtr,
-                                 CI_AppData.ConfigTblHdl);
-    if (iStatus == CFE_TBL_INFO_UPDATED)
-    {
-        CI_ProcessNewConfigTbl();
-        iStatus = CFE_SUCCESS;
-    }
-    else if(iStatus != CFE_SUCCESS)
-    {
+	/*
+	** Manage the table
+	*/
+	iStatus = CFE_TBL_Manage(CI_AppData.ConfigTblHdl);
+	if ((iStatus != CFE_SUCCESS) && (iStatus != CFE_TBL_INFO_UPDATED))
+	{
+		(void) CFE_EVS_SendEvent(CI_CONFIG_TABLE_ERR_EID, CFE_EVS_ERROR,
+								 "Failed to manage Config table (0x%08X)",
+								 (unsigned int)iStatus);
+		goto CI_AcquireConfigPointers_Exit_Tag;
+	}
+
+	iStatus = CFE_TBL_Manage(CI_AppData.TimeoutTblHdl);
+	if ((iStatus != CFE_SUCCESS) && (iStatus != CFE_TBL_INFO_UPDATED))
+	{
+		(void) CFE_EVS_SendEvent(CI_TIMEOUT_TABLE_ERR_EID, CFE_EVS_ERROR,
+								 "Failed to manage Timeout table (0x%08X)",
+								 (unsigned int)iStatus);
+		goto CI_AcquireConfigPointers_Exit_Tag;
+	}
+
+	/*
+	** Get a pointer to the table
+	*/
+	iStatus = CFE_TBL_GetAddress((void*)&CI_AppData.ConfigTblPtr,
+								 CI_AppData.ConfigTblHdl);
+	if (iStatus == CFE_TBL_INFO_UPDATED)
+	{
+		CI_ProcessNewConfigTbl();
+		iStatus = CFE_SUCCESS;
+	}
+	else if(iStatus != CFE_SUCCESS)
+	{
 	CI_AppData.ConfigTblPtr = 0;
-        (void) CFE_EVS_SendEvent(CI_CONFIG_TABLE_ERR_EID, CFE_EVS_ERROR,
-                                 "Failed to get Config table's address (0x%08X)",
-                                 (unsigned int)iStatus);
-    }
+		(void) CFE_EVS_SendEvent(CI_CONFIG_TABLE_ERR_EID, CFE_EVS_ERROR,
+								 "Failed to get Config table's address (0x%08X)",
+								 (unsigned int)iStatus);
+	}
+
+	iStatus = CFE_TBL_GetAddress((void*)&CI_AppData.TimeoutTblPtr,
+									 CI_AppData.TimeoutTblHdl);
+	if (iStatus == CFE_TBL_INFO_UPDATED)
+	{
+		CI_ProcessNewTimeoutTbl();
+		iStatus = CFE_SUCCESS;
+	}
+	else if(iStatus != CFE_SUCCESS)
+	{
+	CI_AppData.TimeoutTblPtr = 0;
+		(void) CFE_EVS_SendEvent(CI_TIMEOUT_TABLE_ERR_EID, CFE_EVS_ERROR,
+								 "Failed to get Timeout table's address (0x%08X)",
+								 (unsigned int)iStatus);
+	}
 
 CI_AcquireConfigPointers_Exit_Tag:
     return (iStatus);

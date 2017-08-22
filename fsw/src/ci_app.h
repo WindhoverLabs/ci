@@ -34,6 +34,8 @@ extern "C" {
 #define CI_LISTENER_TASK_NAME  		"CI_LISTENER"
 #define CI_LISTENER_TASK_STACK_SIZE	16000
 #define CI_LISTENER_TASK_PRIORITY	100
+#define CI_CFG_TBL_MUTEX_NAME 			"CI_CFG_TBL_MUTEX"
+#define CI_TIME_TBL_MUTEX_NAME 			"CI_TIME_TBL_MUTEX"
 
 /************************************************************************
 ** Local Structure Definitions
@@ -78,6 +80,12 @@ typedef struct
     /** \brief Config Table Pointer */
     CI_ConfigTblEntry_t*  ConfigTblPtr;
 
+    /** \brief Timeout Table Handle */
+    CFE_TBL_Handle_t  TimeoutTblHdl;
+
+    /** \brief Timeout Table Pointer */
+    CI_TimeoutTblEntry_t*  TimeoutTblPtr;
+
     /* Critical Data Storage (CDS) table-related */
 
     /** \brief CDS Table Handle */
@@ -97,22 +105,22 @@ typedef struct
     /** \brief Housekeeping Telemetry for downlink */
     CI_HkTlm_t  HkTlm;
 
-    /** \brief  */
+    /** \brief Mutex for CI config table */
+	uint32          ConfigTblMutex;
+
+	/** \brief Mutex for CI timeout table */
+	uint32          TimeoutTblMutex;
+
+    /** \brief ID of child task */
     uint32          ListenerTaskID;
 
-    /** \brief  */
-    int32           ListenerTaskRunStatus;
-
-    /** \brief  */
+    /** \brief Buffer for child task cmd ingest */
     uint8           IngestBuffer[CI_MAX_CMD_INGEST];
 
-    /** \brief  */
-    CFE_SB_Msg_t    *IngestPointer;
-
-    /** \brief  */
+    /** \brief Run flag for ingest loop */
     boolean			IngestActive;
 
-    /** \brief  */
+    /** \brief Behavior for unknown commands to CI */
     CI_BEHAVIOR		IngestBehavior;
 
 } CI_AppData_t;
@@ -167,7 +175,7 @@ void  CI_AppMain(void);
 **  \retstmt Return codes from #CI_InitEvent               \endcode
 **  \retstmt Return codes from #CI_InitPipe                \endcode
 **  \retstmt Return codes from #CI_InitData                \endcode
-**  \retstmt Return codes from #CI_InitConfigTbl           \endcode
+**  \retstmt Return codes from #CI_InitTbls          	   \endcode
 **  \retstmt Return codes from #CI_InitCdsTbl              \endcode
 **  \retstmt Return codes from #OS_TaskInstallDeleteHandler \endcode
 **  \endreturns
@@ -478,6 +486,28 @@ void CI_CmdDeauthorize(CFE_SB_Msg_t* MsgPtr);
 **
 *************************************************************************/
 CI_CmdData_t *CI_GetRegisterdCmd(CFE_SB_MsgId_t msgID, uint16 cmdCode);
+
+/************************************************************************/
+/** \brief Get Registered Command Index
+**
+**  \par Description
+**       This function searches for and returns a command
+**       from the config table's index
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \param [in]   msgID        A #CFE_SB_MsgId_t that specifies the
+**  						   message ID if of the command
+**
+**  \param [in]   cmdCode      A #uint16 that specifies the command code
+**
+**  \returns
+**  #uint32 if the command is registerd, -1 if it is not.
+**  \endreturns
+**
+*************************************************************************/
+uint32 CI_GetRegisterdCmdIdx(CFE_SB_MsgId_t msgID, uint16 cmdCode);
 
 /************************************************************************/
 /** \brief Register Command

@@ -31,6 +31,11 @@ extern "C" {
 #define CI_CONFIG_TABLENAME          ("CONFIG_TBL")
 
 /**
+ * \brief Defines the table identification name used for timeout table registration.
+ */
+#define CI_TIMEOUT_TABLENAME         ("TIMEOUT_TBL")
+
+/**
  * \brief Defines the table file name used for table registration.
  */
 #define CI_CDS_TABLENAME  ("ci_CdsTbl")
@@ -39,14 +44,19 @@ extern "C" {
 ** Local Structure Declarations
 *************************************************************************/
 
-/** \brief Definition for a single config table entry */
+/** \brief Definition for a CI command config table */
 typedef struct
 {
 	uint8			TableID;
 	CI_CmdData_t	cmds[CI_MAX_RGST_CMDS];
-
 } CI_ConfigTblEntry_t;
 
+/** \brief Definition for a CI command timeout table */
+typedef struct
+{
+	uint8			TableID;
+	int				time[CI_MAX_RGST_CMDS];
+} CI_TimeoutTblEntry_t;
 
 /** \brief Definition for Critical Data Storage (CDS) table entry */
 typedef struct
