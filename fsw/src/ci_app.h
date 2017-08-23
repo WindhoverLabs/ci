@@ -34,8 +34,8 @@ extern "C" {
 #define CI_LISTENER_TASK_NAME  		"CI_LISTENER"
 #define CI_LISTENER_TASK_STACK_SIZE	16000
 #define CI_LISTENER_TASK_PRIORITY	100
-#define CI_CFG_TBL_MUTEX_NAME 			"CI_CFG_TBL_MUTEX"
-#define CI_TIME_TBL_MUTEX_NAME 			"CI_TIME_TBL_MUTEX"
+#define CI_CFG_TBL_MUTEX_NAME 		"CI_CFG_TBL_MUTEX"
+#define CI_TIME_TBL_MUTEX_NAME 		"CI_TIME_TBL_MUTEX"
 
 /************************************************************************
 ** Local Structure Definitions
@@ -362,8 +362,34 @@ void  CI_SendOutData(void);
 *************************************************************************/
 boolean  CI_VerifyCmdLength(CFE_SB_Msg_t* MsgPtr, uint16 usExpectedLen);
 
-/* TODO:  Add Doxygen markup. */
+/************************************************************************/
+/** \brief Init Listener Task
+**
+**  \par Description
+**       This function create a CFs child task for the command
+**       ingest listener.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \returns
+**	\retcode #CFE_SUCCESS  \retdesc \copydoc CFE_SUCCESS \endcode
+**  \retstmt Return codes from #CFE_ES_CreateChildTask            \endcode
+**
+*************************************************************************/
 int32  CI_InitListenerTask(void);
+
+/************************************************************************/
+/** \brief Listener Task Main
+**
+**  \par Description
+**       This function opens a socket and ingests all cmds for
+**       CI to process before publishing them to the software bus.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+*************************************************************************/
 void CI_ListenerTaskMain(void);
 
 /************************************************************************/
@@ -491,8 +517,8 @@ CI_CmdData_t *CI_GetRegisterdCmd(CFE_SB_MsgId_t msgID, uint16 cmdCode);
 /** \brief Get Registered Command Index
 **
 **  \par Description
-**       This function searches for and returns a command
-**       from the config table's index
+**       This function searches for a cmd and returns an index
+**       of the config table containing that cmd
 **
 **  \par Assumptions, External Events, and Notes:
 **       None

@@ -54,7 +54,6 @@ typedef struct
     int32	 		code;
     CI_CmdStep_t	step;
     CI_CmdAuth_t	state;
-    int32	 		timeout;
     int	 			RouteCount;
     CI_CmdLog_t	 	log;
 } CI_CmdData_t;

@@ -247,34 +247,6 @@ extern "C" {
 */
 #define CI_UPDT_CMD_CC                (6)
 
-/** \cicmd Dump Log
-**
-**  \par Description
-**       Dump command log to file
-**
-**  \par Command Structure
-**       #CI_NoArgCmd_t
-**
-**  \par Command Verification
-**       Successful execution of this command may be verified with
-**       the following telemetry:
-**       - The #TODO debug event message will be
-**         generated when the command is executed
-**
-**  \par Error Conditions
-**       This command may fail for the following reason(s):
-**       - Command packet length not as expected
-**
-**  \par Evidence of failure may be found in the following telemetry:
-**       - Error specific event message #TODO
-**
-**  \par Criticality
-**       None
-**
-**  \sa #CI_DUMP_LOG_CC
-*/
-#define CI_DUMP_LOG_CC                (7)
-
 /************************************************************************
 ** Local Structure Declarations
 *************************************************************************/
@@ -368,10 +340,6 @@ typedef struct
 
     /** \brief Ingest count of errors */
     uint8              IngestErrorCount;
-
-    /** \brief Padding for struct alignment */
-    //uint8              padding[2];
-
 } CI_HkTlm_t;
 
 

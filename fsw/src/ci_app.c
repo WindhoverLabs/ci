@@ -420,30 +420,6 @@ CI_GetRegisterdCmdIdx_Exit_Tag:
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
-/* Log Command                                 					   */
-/*                                                                 */
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-void CI_LogCmd(CFE_SB_Msg_t* MsgPtr)
-{
-	CI_CmdData_t		*CmdData = NULL;
-	CFE_SB_MsgId_t  	msgID = 0;
-	uint16 				cmdCode = 0;
-
-	/* Check if command is not registered */
-	msgID = CFE_SB_GetMsgId(MsgPtr);
-	cmdCode = CFE_SB_GetCmdCode(MsgPtr);
-	CmdData = CI_GetRegisterdCmd(msgID, cmdCode);
-	if (CmdData == NULL)
-	{
-		// TODO
-	}
-
-	return;
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-/*                                                                 */
 /* Authorize Command			                                   */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -486,7 +462,7 @@ void CI_CmdAuthorize(CFE_SB_Msg_t* MsgPtr)
 
 		i = CI_GetRegisterdCmdIdx(authDataPtr->msgID, authDataPtr->cmdCode);
 
-		/* Lock the mutex */
+		/* Lock the mutexes */
 		OS_MutSemTake(CI_AppData.ConfigTblMutex);
 		OS_MutSemTake(CI_AppData.TimeoutTblMutex);
 
@@ -494,7 +470,7 @@ void CI_CmdAuthorize(CFE_SB_Msg_t* MsgPtr)
 		CmdData->state = AUTHORIZED;
 		CI_AppData.TimeoutTbl.time[i] = CI_CMD_MAX_TIMEOUT;
 
-		/* Unlock the mutex */
+		/* Unlock the mutexes */
 		OS_MutSemGive(CI_AppData.ConfigTblMutex);
 		OS_MutSemGive(CI_AppData.TimeoutTblMutex);
 
@@ -549,7 +525,7 @@ void CI_CmdDeauthorize(CFE_SB_Msg_t* MsgPtr)
 
 		i = CI_GetRegisterdCmdIdx(authDataPtr->msgID, authDataPtr->cmdCode);
 
-		/* Lock the mutex */
+		/* Lock the mutexes */
 		OS_MutSemTake(CI_AppData.ConfigTblMutex);
 		OS_MutSemTake(CI_AppData.TimeoutTblMutex);
 
@@ -557,7 +533,7 @@ void CI_CmdDeauthorize(CFE_SB_Msg_t* MsgPtr)
 		CmdData->state = UNAUTHORIZED;
 		CI_AppData.TimeoutTbl.time[i] = 0;
 
-		/* Unlock the mutex */
+		/* Unlock the mutexes */
 		OS_MutSemGive(CI_AppData.ConfigTblMutex);
 		OS_MutSemGive(CI_AppData.TimeoutTblMutex);
 
@@ -593,7 +569,7 @@ void CI_CmdRegister(CFE_SB_Msg_t* MsgPtr)
 			CmdData = CI_GetRegisterdCmd(regDataPtr->msgID, regDataPtr->cmdCode);
 			if (CmdData == NULL)
 			{
-				/* Lock the mutex */
+				/* Lock the config mutex */
 				OS_MutSemTake(CI_AppData.ConfigTblMutex);
 
 				/* Find first unused index in config table to add command */
@@ -609,8 +585,7 @@ void CI_CmdRegister(CFE_SB_Msg_t* MsgPtr)
 				/* If entry isn't NULL set to passed params */
 				if(CmdData != NULL)
 				{
-					/* Lock the mutex */
-					OS_MutSemTake(CI_AppData.ConfigTblMutex);
+					/* Lock the timeout mutex */
 					OS_MutSemTake(CI_AppData.TimeoutTblMutex);
 
 					/* Update values */
@@ -618,13 +593,11 @@ void CI_CmdRegister(CFE_SB_Msg_t* MsgPtr)
 					CmdData->code = regDataPtr->cmdCode;
 					CmdData->step = regDataPtr->step;
 					CmdData->state = UNAUTHORIZED;
-					CmdData->timeout = 0;
 					CmdData->RouteCount = 0;
 					CmdData->log = regDataPtr->log;
 					CI_AppData.TimeoutTbl.time[i] = 0;
 
-					/* Unlock the mutex */
-					OS_MutSemGive(CI_AppData.ConfigTblMutex);
+					/* Unlock the timeout mutex */
 					OS_MutSemGive(CI_AppData.TimeoutTblMutex);
 
 					CFE_EVS_SendEvent (CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "Cmd registered");
@@ -636,7 +609,7 @@ void CI_CmdRegister(CFE_SB_Msg_t* MsgPtr)
 					CI_AppData.HkTlm.usCmdErrCnt++;
 				}
 
-				/* Unlock the mutex */
+				/* Unlock the config mutex */
 				OS_MutSemGive(CI_AppData.ConfigTblMutex);
 			}
 			else
@@ -690,7 +663,6 @@ void CI_CmdDeregister(CFE_SB_Msg_t* MsgPtr)
 				CmdData->code = 0;
 				CmdData->step = 0;
 				CmdData->state = 0;
-				CmdData->timeout = 0;
 				CmdData->RouteCount = 0;
 				CmdData->log = 0;
 				CI_AppData.TimeoutTbl.time[i] = 0;
@@ -765,7 +737,6 @@ void CI_UpdateCmdReg(CFE_SB_Msg_t* MsgPtr)
 				CmdData->code = regDataPtr->cmdCode;
 				CmdData->step = regDataPtr->step;
 				CmdData->state = UNAUTHORIZED;
-				CmdData->timeout = 0;
 				CmdData->RouteCount = 0;
 				CmdData->log = regDataPtr->log;
 				CI_AppData.TimeoutTbl.time[i] = 0;
@@ -851,21 +822,18 @@ boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr, uint32 MsgSize)
 	/* Verify CCSDS version */
 	if (CCSDS_RD_VERS(MsgPtr->Hdr) != 0)
 	{
-		//OS_printf("ccsds \n");
 		goto CI_ValidateCmd_Exit_Tag;
 	}
 
 	/* Verify secondary header present */
 	if (CCSDS_RD_SHDR(MsgPtr->Hdr) == 0)
 	{
-		//OS_printf("sec \n");
 		goto CI_ValidateCmd_Exit_Tag;
 	}
 
 	/* Verify packet type is cmd */
 	if (CCSDS_RD_TYPE(MsgPtr->Hdr) != CCSDS_CMD)
 	{
-		//OS_printf("cmd \n");
 		goto CI_ValidateCmd_Exit_Tag;
 	}
 
@@ -882,16 +850,16 @@ boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr, uint32 MsgSize)
 	{
 		if (CFE_SB_ValidateChecksum(MsgPtr->Byte) != TRUE)
 		{
-			OS_printf("Invalid Checksum \n"); //TODO: Need event?
 			goto CI_ValidateCmd_Exit_Tag;
 		}
 	}
 	else
 	{
+		/* If no checksum present check the CI_CHECKSUM_REQUIRED
+		 * macro defined in the platform config */
 		if (CI_CHECKSUM_REQUIRED == 0)
 		{
-			OS_printf("Checksum required \n");
-			goto CI_ValidateCmd_Exit_Tag; //TODO: Need event?
+			goto CI_ValidateCmd_Exit_Tag;
 		}
 	}
 
@@ -943,7 +911,7 @@ boolean CI_GetCmdAuthorized(CFE_SB_Msg_t* MsgPtr)
 
 		i = CI_GetRegisterdCmdIdx(msgID, cmdCode);
 
-		/* Lock the mutex */
+		/* Lock the mutexes */
 		OS_MutSemTake(CI_AppData.ConfigTblMutex);
 		OS_MutSemTake(CI_AppData.TimeoutTblMutex);
 
@@ -951,7 +919,7 @@ boolean CI_GetCmdAuthorized(CFE_SB_Msg_t* MsgPtr)
 		CmdData->state = UNAUTHORIZED;
 		CI_AppData.TimeoutTbl.time[i] = 0;
 
-		/* Unlock the mutex */
+		/* Unlock the mutexes */
 		OS_MutSemGive(CI_AppData.ConfigTblMutex);
 		OS_MutSemGive(CI_AppData.TimeoutTblMutex);
 
@@ -978,17 +946,17 @@ int32 CI_InitListenerTask(void)
 {
     int32 Status = CFE_SUCCESS;
 
+    /* Create mutex for config table */
     Status = OS_MutSemCreate(&CI_AppData.ConfigTblMutex, CI_CFG_TBL_MUTEX_NAME, 0);
 	if (Status != CFE_SUCCESS)
 	{
-		OS_printf("Create config mutex failed \n\n\n");
 		goto CI_InitListenerTask_Exit_Tag;
 	}
 
+	/* Create mutex for timeout dump table */
 	Status = OS_MutSemCreate(&CI_AppData.TimeoutTblMutex, CI_TIME_TBL_MUTEX_NAME, 0);
 	if (Status != CFE_SUCCESS)
 	{
-		OS_printf("Create timeout mutex failed \n\n\n");//TODO
 		goto CI_InitListenerTask_Exit_Tag;
 	}
 
@@ -999,6 +967,8 @@ int32 CI_InitListenerTask(void)
 								   CI_LISTENER_TASK_STACK_SIZE,
 								   CI_LISTENER_TASK_PRIORITY,
 								   0);
+
+CI_InitListenerTask_Exit_Tag:
 	if (Status != CFE_SUCCESS)
 	{
 		CFE_EVS_SendEvent (CI_LISTENER_CREATE_CHDTASK_ERR_EID,
@@ -1006,8 +976,6 @@ int32 CI_InitListenerTask(void)
 						   "Listener child task failed.  CFE_ES_CreateChildTask returned: 0x%08X",
 						   Status);
 	}
-
-CI_InitListenerTask_Exit_Tag:
 
     return Status;
 }
@@ -1050,7 +1018,6 @@ void CI_ListenerTaskMain(void)
 						if (CI_CMD_MID == CmdMsgId)
 						{
 							CI_ProcessNewAppCmds(CmdMsgPtr);
-							CI_LogCmd(CmdMsgPtr);
 						}
 						else
 						{
@@ -1061,7 +1028,6 @@ void CI_ListenerTaskMain(void)
 								CI_AppData.HkTlm.IngestMsgCount++;
 								CFE_SB_SendMsg(CmdMsgPtr);
 								CFE_ES_PerfLogExit(CI_SOCKET_RCV_PERF_ID);
-								CI_LogCmd(CmdMsgPtr);
 							}
 						}
 					}
@@ -1332,9 +1298,6 @@ void CI_ProcessNewAppCmds(CFE_SB_Msg_t* MsgPtr)
 
             case CI_UPDT_CMD_CC:
             	CI_UpdateCmdReg(MsgPtr);
-				break;
-
-            case CI_DUMP_LOG_CC:
 				break;
 
             default:

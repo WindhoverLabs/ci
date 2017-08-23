@@ -44,7 +44,7 @@ extern "C" {
 /** \brief Init CI Config table
 **
 **  \par Description
-**       This function initializes CI's Config table
+**       This function initializes CI's Config and Timeout table
 **
 **  \par Assumptions, External Events, and Notes:
 **       None
