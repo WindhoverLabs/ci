@@ -379,6 +379,7 @@ CI_CmdData_t *CI_GetRegisterdCmd(CFE_SB_MsgId_t msgID, uint16 cmdCode)
 			if(CI_AppData.ConfigTblPtr->cmds[i].code == cmdCode)
 			{
 				CmdData = &CI_AppData.ConfigTblPtr->cmds[i];
+				goto CI_GetRegisterdCmd_Exit_Tag;
 			}
 		}
 	}
@@ -767,7 +768,7 @@ void CI_UpdateCmdReg(CFE_SB_Msg_t* MsgPtr)
 		}
 		else
 		{
-			CFE_EVS_SendEvent (CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to register cmd");
+			CFE_EVS_SendEvent (CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to update cmd");
 			CI_AppData.HkTlm.usCmdErrCnt++;
 		}
 	}
@@ -1021,12 +1022,6 @@ void CI_ListenerTaskMain(void)
 				if (MsgSize <= CI_MAX_CMD_INGEST)
 				{
 					/* Verify validity of cmd */
-					OS_printf("Buffer: \n");
-					for (int i = 0; i < MsgSize; i++)
-					{
-					    printf("%02X ", CI_AppData.IngestBuffer[i]);
-					}
-					OS_printf("\nEnd buffer\n");
 					CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
 					if (CI_ValidateCmd(CmdMsgPtr, MsgSize) == TRUE)
 					{
