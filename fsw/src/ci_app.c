@@ -363,6 +363,11 @@ CI_CmdData_t *CI_GetRegisterdCmd(CFE_SB_MsgId_t msgID, uint16 cmdCode)
 	uint32 				i = 0;
 	CI_CmdData_t		*CmdData = NULL;
 
+	if(msgID == 0)
+	{
+		goto CI_GetRegisterdCmd_Exit_Tag;
+	}
+
 	/* Lock the mutex */
 	OS_MutSemTake(CI_AppData.ConfigTblMutex);
 
@@ -378,6 +383,7 @@ CI_CmdData_t *CI_GetRegisterdCmd(CFE_SB_MsgId_t msgID, uint16 cmdCode)
 		}
 	}
 
+CI_GetRegisterdCmd_Exit_Tag:
 	/* Unlock the mutex */
 	OS_MutSemGive(CI_AppData.ConfigTblMutex);
 
@@ -393,6 +399,11 @@ CI_CmdData_t *CI_GetRegisterdCmd(CFE_SB_MsgId_t msgID, uint16 cmdCode)
 uint32 CI_GetRegisterdCmdIdx(CFE_SB_MsgId_t msgID, uint16 cmdCode)
 {
 	uint32 				i = -1;
+
+	if(msgID == 0)
+	{
+		goto CI_GetRegisterdCmdIdx_Exit_Tag;
+	}
 
 	/* Lock the mutex */
 	OS_MutSemTake(CI_AppData.ConfigTblMutex);
@@ -1010,6 +1021,12 @@ void CI_ListenerTaskMain(void)
 				if (MsgSize <= CI_MAX_CMD_INGEST)
 				{
 					/* Verify validity of cmd */
+					OS_printf("Buffer: \n");
+					for (int i = 0; i < MsgSize; i++)
+					{
+					    printf("%02X ", CI_AppData.IngestBuffer[i]);
+					}
+					OS_printf("\nEnd buffer\n");
 					CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
 					if (CI_ValidateCmd(CmdMsgPtr, MsgSize) == TRUE)
 					{
@@ -1274,8 +1291,8 @@ void CI_ProcessNewAppCmds(CFE_SB_Msg_t* MsgPtr)
             case CI_RESET_CC:
                 CI_AppData.HkTlm.usCmdCnt = 0;
                 CI_AppData.HkTlm.usCmdErrCnt = 0;
-                CI_AppData.IngestActive == TRUE;
-                // TODO: other vars
+                CI_AppData.HkTlm.IngestMsgCount = 0;
+                CI_AppData.HkTlm.IngestErrorCount = 0;
                 (void) CFE_EVS_SendEvent(CI_CMD_INF_EID, CFE_EVS_INFORMATION,
                                   "Recvd RESET cmd (%u)", (unsigned int)uiCmdCode);
                 break;
