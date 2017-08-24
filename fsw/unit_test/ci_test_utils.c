@@ -45,6 +45,26 @@ void CI_Test_Setup(void)
     Ut_CFE_TBL_AddTable(CI_CONFIG_TABLE_FILENAME, (void *) &CI_configtable);
 }
 
+void CI_Test_Setup_InitTbls(void)
+{
+    /* initialize test environment to default state for every test */
+
+    CFE_PSP_MemSet(&CI_AppData, 0x00, sizeof(CI_AppData_t));
+
+    Ut_CFE_EVS_Reset();
+    Ut_CFE_FS_Reset();
+    Ut_CFE_TIME_Reset();
+    Ut_CFE_TBL_Reset();
+    Ut_CFE_SB_Reset();
+    Ut_CFE_ES_Reset();
+    Ut_OSAPI_Reset();
+    Ut_OSFILEAPI_Reset();
+
+    Ut_CFE_TBL_AddTable(CI_CONFIG_TABLE_FILENAME, (void *) &CI_configtable);
+
+    CI_InitTbls();
+}
+
 void CI_Test_TearDown(void) {
     CFE_PSP_MemSet(&CI_AppData, 0x00, sizeof(CI_AppData_t));
 }

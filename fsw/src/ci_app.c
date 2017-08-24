@@ -235,6 +235,7 @@ int32 CI_InitApp()
 {
     int32  iStatus   = CFE_SUCCESS;
     int8   hasEvents = 0;
+    CI_AppData.IngestActive = TRUE;
 
     iStatus = CI_InitEvent();
     if (iStatus != CFE_SUCCESS)
@@ -1011,9 +1012,7 @@ void CI_ListenerTaskMain(void)
 	if (Status == CFE_SUCCESS)
 	{
 		/* Receive data and place in IngestBuffer */
-		CI_AppData.IngestActive = TRUE; // TODO: Place this better?
-		while(CI_AppData.IngestActive == TRUE)
-		{
+		do{
 			MsgSize = CI_MAX_CMD_INGEST;
 			CI_ReadMessage(CI_AppData.IngestBuffer, &MsgSize);
 			if(MsgSize > 0)
@@ -1059,7 +1058,7 @@ void CI_ListenerTaskMain(void)
 				}
 			}
 			OS_TaskDelay(100); // TODO: Verify required
-		}
+		}while(CI_AppData.IngestActive == TRUE);
 
 		CFE_ES_ExitChildTask();
 	}

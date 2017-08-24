@@ -506,7 +506,7 @@ void Test_CI_ListenerTaskMain_FailRegister(void)
 }
 
 /**
- * Test CI_ListenerTaskMain(), TODO: Fix looping
+ * Test CI_ListenerTaskMain(),
  */
 void Test_CI_ListenerTaskMain_LongCmd(void)
 {
@@ -514,8 +514,10 @@ void Test_CI_ListenerTaskMain_LongCmd(void)
 	//INIT_CUSTOM_RET = -1;//
 	READ_MSG_RET = -1;
 
+	CI_AppData.IngestActive = FALSE;
+
 	/* Execute the function being tested */
-	//CI_ListenerTaskMain();
+	CI_ListenerTaskMain();
 
 	/* If this occurs no events will be sent because the task isn't registered with CFE */
 	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==0,"Event Count = 0");
@@ -777,20 +779,17 @@ void Test_CI_GetCmdAuthorized_1_Step(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Register a new 1-step cmd */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
 	CI_CmdRegister(&cmdReg);
 
 	/* Create CFE_SB_Msg_t */
 	MsgSize = sizeof(cmd);
-	CFE_SB_InitMsg(&cmd, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
-	cmdPtr->msgID = 123;
+	cmdPtr->msgID = TEST_MSG_ID;
 
 	/* Execute the function being tested */
 	retCode = CI_GetCmdAuthorized(cmdPtr);
@@ -811,21 +810,18 @@ void Test_CI_GetCmdAuthorized_2_Step_Unauth(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Register a new 2-step cmd */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_2;
 	CI_CmdRegister(&cmdReg);
 
 	/* Create CFE_SB_Msg_t */
 	MsgSize = sizeof(cmd);
-	CFE_SB_InitMsg(&cmd, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
-	cmdPtr->msgID = 123;
+	cmdPtr->msgID = TEST_MSG_ID;
 
 	/* Execute the function being tested */
 	retCode = CI_GetCmdAuthorized(cmdPtr);
@@ -846,21 +842,18 @@ void Test_CI_GetCmdAuthorized_2_Step_Auth(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Register a new 2-step cmd */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_2;
 	CI_CmdRegister(&cmdReg);
 
 	/* Authorize the cmd */
 	MsgSize = sizeof(cmd);
-	CFE_SB_InitMsg(&cmd, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 	cmdPtr = ((CI_CmdRegData_t *) &cmd);
-	cmdPtr->msgID = 123;
+	cmdPtr->msgID = TEST_MSG_ID;
 	CI_CmdAuthorize(cmdPtr);
 
 	/* Execute the function being tested */
@@ -880,14 +873,11 @@ void Test_CI_CmdAuthorize_Not_Reg(void)
 	uint32  			MsgSize = sizeof(cmd);
 	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Init the cmd */
 	MsgSize = sizeof(cmd);
-	CFE_SB_InitMsg(&cmd, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 	cmdPtr = ((CI_CmdRegData_t *) &cmd);
-	cmdPtr->msgID = 123;
+	cmdPtr->msgID = TEST_MSG_ID;
 
 	/* Execute the function being tested */
 	CI_CmdAuthorize(cmdPtr);
@@ -909,21 +899,18 @@ void Test_CI_CmdAuthorize_Not_2_Step(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Register a new 1-step cmd - generates 1 event */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_1;
 	CI_CmdRegister(&cmdReg);
 
 	/* Authorize the cmd */
 	MsgSize = sizeof(cmd);
-	CFE_SB_InitMsg(&cmd, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 	cmdPtr = ((CI_CmdRegData_t *) &cmd);
-	cmdPtr->msgID = 123;
+	cmdPtr->msgID = TEST_MSG_ID;
 
 	/* Execute the function being tested */
 	CI_CmdAuthorize(cmdPtr);
@@ -945,21 +932,18 @@ void Test_CI_CmdAuthorize_Inv_State(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Register a new 2-step cmd - generates 1 event */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_2;
 	CI_CmdRegister(&cmdReg);
 
 	/* Authorize the cmd */
 	MsgSize = sizeof(cmd);
-	CFE_SB_InitMsg(&cmd, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 	cmdPtr = ((CI_CmdRegData_t *) &cmd);
-	cmdPtr->msgID = 123;
+	cmdPtr->msgID = TEST_MSG_ID;
 
 	/* Execute the function being tested twice */
 	CI_CmdAuthorize(cmdPtr);
@@ -984,21 +968,18 @@ void Test_CI_CmdAuthorize_Nominal(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Register a new 2-step cmd - generates 1 event */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_2;
 	CI_CmdRegister(&cmdReg);
 
 	/* Authorize the cmd */
 	MsgSize = sizeof(cmd);
-	CFE_SB_InitMsg(&cmd, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 	cmdPtr = ((CI_CmdRegData_t *) &cmd);
-	cmdPtr->msgID = 123;
+	cmdPtr->msgID = TEST_MSG_ID;
 
 	/* Execute the function being tested */
 	CI_CmdAuthorize(cmdPtr);
@@ -1018,14 +999,11 @@ void Test_CI_CmdDeauthorize_Not_Reg(void)
 	CI_CmdAuthData_t 	*cmdPtr;
 	uint32  			MsgSize;
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Deauthorize the cmd */
 	MsgSize = sizeof(cmd);
-	CFE_SB_InitMsg(&cmd, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
-	cmdPtr->msgID = 123;
+	cmdPtr->msgID = TEST_MSG_ID;
 
 	/* Execute the function being tested */
 	CI_CmdDeauthorize(cmdPtr);
@@ -1047,21 +1025,18 @@ void Test_CI_CmdDeauthorize_Not_2_Step(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Register a new 2-step cmd - generates 1 event */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_1;
 	CI_CmdRegister(&cmdReg);
 
 	/* Deauthorize the cmd */
 	MsgSize = sizeof(cmd);
-	CFE_SB_InitMsg(&cmd, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 	cmdPtr = ((CI_CmdRegData_t *) &cmd);
-	cmdPtr->msgID = 123;
+	cmdPtr->msgID = TEST_MSG_ID;
 
 	/* Execute the function being tested */
 	CI_CmdDeauthorize(cmdPtr);
@@ -1084,21 +1059,18 @@ void Test_CI_CmdDeauthorize_Not_Auth(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Register a new 2-step cmd - generates 1 event */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_2;
 	CI_CmdRegister(&cmdReg);
 
 	/* Deauthorize the cmd */
 	MsgSize = sizeof(cmd);
-	CFE_SB_InitMsg(&cmd, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 	cmdPtr = ((CI_CmdRegData_t *) &cmd);
-	cmdPtr->msgID = 123;
+	cmdPtr->msgID = TEST_MSG_ID;
 
 	/* Execute the function being tested */
 	CI_CmdDeauthorize(cmdPtr);
@@ -1121,21 +1093,18 @@ void Test_CI_CmdDeauthorize_Nominal(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Register a new 2-step cmd - generates 1 event */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_2;
 	CI_CmdRegister(&cmdReg);
 
 	/* Deauthorize the cmd */
 	MsgSize = sizeof(cmd);
-	CFE_SB_InitMsg(&cmd, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 	cmdPtr = ((CI_CmdRegData_t *) &cmd);
-	cmdPtr->msgID = 123;
+	cmdPtr->msgID = TEST_MSG_ID;
 
 	/* Execute the function being tested */
 	CI_CmdAuthorize(cmdPtr);
@@ -1158,11 +1127,8 @@ void Test_CI_CmdRegister_Inv_MsgID(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Register a new cmd */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = 0;
 
@@ -1184,13 +1150,10 @@ void Test_CI_CmdRegister_Reg_Exists(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Register a new cmd */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
 
 	/* Execute the function being tested */
 	CI_CmdRegister(&cmdReg);
@@ -1214,9 +1177,6 @@ void Test_CI_CmdRegister_Full_Table(void)
 	uint32  			MsgSize = sizeof(cmdReg);
 	uint32 				i = 0;
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Populate entire config tbl */
 	for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
 	{
@@ -1224,9 +1184,9 @@ void Test_CI_CmdRegister_Full_Table(void)
 	}
 
 	/* Register a new cmd */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
 
 	/* Execute the function being tested */
 	CI_CmdRegister(&cmdReg);
@@ -1246,13 +1206,10 @@ void Test_CI_CmdRegister_Nominal(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Register a new cmd */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
 
 	/* Execute the function being tested */
 	CI_CmdRegister(&cmdReg);
@@ -1274,11 +1231,8 @@ void Test_CI_CmdDeregister_Inv_MsgID(void)
 	CI_CmdAuthData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Deregister a cmd */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = 0;
 
@@ -1300,13 +1254,10 @@ void Test_CI_CmdDeregister_Not_Reg(void)
 	CI_CmdAuthData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Deregister a new cmd */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
 
 	/* Execute the function being tested */
 	CI_CmdDeregister(&cmdReg);
@@ -1328,18 +1279,15 @@ void Test_CI_CmdDeregister_Nominal(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Register and Deregister a new cmd */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
 
 	MsgSize = sizeof(cmd);
-	CFE_SB_InitMsg(&cmd, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 	cmdPtr = ((CI_CmdRegData_t *) &cmd);
-	cmdPtr->msgID = 123;
+	cmdPtr->msgID = TEST_MSG_ID;
 
 	/* Execute the function being tested */
 	CI_CmdRegister(&cmdReg);
@@ -1361,11 +1309,8 @@ void Test_CI_UpdateCmdReg_Inv_MsgID(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Register a new cmd */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = 0;
 
@@ -1387,13 +1332,10 @@ void Test_CI_UpdateCmdReg_Not_Reg(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Register a new cmd */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
 
 	/* Execute the function being tested */
 	CI_UpdateCmdReg(&cmdReg);
@@ -1414,38 +1356,31 @@ void Test_CI_UpdateCmdReg_2_Step_Nominal(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
-
-	/* Need to init tables to work */
-	CI_InitTbls();
+	CI_CmdData_t		*CmdData = NULL;
 
 	/* Register a new cmd */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
+	regDataPtr->cmdCode = TEST_CC;
 	regDataPtr->step = STEP_2;
-
-	/* Authorize the cmd */
-	MsgSize = sizeof(cmd);
-	CFE_SB_InitMsg(&cmd, 123, MsgSize, TRUE);
-	cmdPtr = ((CI_CmdRegData_t *) &cmd);
-	cmdPtr->msgID = 123;
 
 	/* Execute functions required */
 	CI_CmdRegister(&cmdReg);
-	CI_CmdAuthorize(&cmd);
 
-	/* Register a new cmd */
+	/* Change a value */
 	regDataPtr->step = STEP_1;
 
 	/* Execute the function being tested */
 	CI_UpdateCmdReg(&cmdReg);
 
 	/* Verify results */
+	CmdData = CI_GetRegisterdCmd(TEST_MSG_ID, TEST_CC);
 	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "Cmd registered", "Cmd registered");
-	UtAssert_EventSent(CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd authorized", "Cmd authorized");
-	UtAssert_EventSent(CI_CMD_UPDT_REG_INVLD_STATE_EID, CFE_EVS_ERROR, "Invalid state of command to update", "Invalid state of command to update");
+	UtAssert_EventSent(CI_CMD_UPDATE_REG_EID, CFE_EVS_INFORMATION, "Cmd updated", "Cmd updated");
 	UtAssert_True(CI_AppData.HkTlm.usCmdCnt==2,"CmdCnt = 2");
-	UtAssert_True(CI_AppData.HkTlm.usCmdErrCnt==1,"CmdErrCnt = 1");
+	UtAssert_True(CmdData->mid==TEST_MSG_ID,"Correct data row");
+	UtAssert_True(CmdData->step==STEP_1,"Successfully updated cmd stepping");
 }
 
 /**
@@ -1459,25 +1394,31 @@ void Test_CI_UpdateCmdReg_2_Step_Auth(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 
-	/* Need to init tables to work */
-	CI_InitTbls();
-
 	/* Register a new cmd */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_2;
+
+	/* Authorize the cmd */
+	MsgSize = sizeof(cmd);
+	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
+	cmdPtr = ((CI_CmdRegData_t *) &cmd);
+	cmdPtr->msgID = TEST_MSG_ID;
 
 	/* Execute functions required */
 	CI_CmdRegister(&cmdReg);
+	CI_CmdAuthorize(&cmd);
 
 	/* Execute the function being tested */
 	CI_UpdateCmdReg(&cmdReg);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "Cmd registered", "Cmd registered");
-	UtAssert_EventSent(CI_CMD_UPDATE_REG_EID, CFE_EVS_INFORMATION, "Cmd updated", "Cmd updated");
+	UtAssert_EventSent(CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd authorized", "Cmd authorized");
+	UtAssert_EventSent(CI_CMD_UPDT_REG_INVLD_STATE_EID, CFE_EVS_ERROR, "Invalid state of command to update", "Invalid state of command to update");
 	UtAssert_True(CI_AppData.HkTlm.usCmdCnt==2,"CmdCnt = 2");
+	UtAssert_True(CI_AppData.HkTlm.usCmdErrCnt==1,"CmdErrCnt = 1");
 }
 
 /**
@@ -1490,26 +1431,30 @@ void Test_CI_UpdateCmdReg_1_Step_Nominal(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
-
-	/* Need to init tables to work */
-	CI_InitTbls();
+	CI_CmdData_t		*CmdData = NULL;
 
 	/* Register a new cmd */
-	CFE_SB_InitMsg(&cmdReg, 123, MsgSize, TRUE);
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
-	regDataPtr->msgID = 123;
+	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_1;
 
 	/* Execute functions required */
 	CI_CmdRegister(&cmdReg);
 
+	/* Change a value */
+	regDataPtr->step = STEP_2;
+
 	/* Execute the function being tested */
 	CI_UpdateCmdReg(&cmdReg);
 
 	/* Verify results */
+	CmdData = CI_GetRegisterdCmd(TEST_MSG_ID, TEST_CC);
 	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "Cmd registered", "Cmd registered");
 	UtAssert_EventSent(CI_CMD_UPDATE_REG_EID, CFE_EVS_INFORMATION, "Cmd updated", "Cmd updated");
 	UtAssert_True(CI_AppData.HkTlm.usCmdCnt==2,"CmdCnt = 2");
+	UtAssert_True(CmdData->mid==TEST_MSG_ID,"Correct data row");
+	UtAssert_True(CmdData->step==STEP_2,"Successfully updated cmd stepping");
 }
 
 /**
@@ -1555,10 +1500,8 @@ void CI_App_Test_AddTestCases(void)
                "Test_CI_InitPipe_Fail_SubscribeCMD");
     UtTest_Add(Test_CI_InitPipe_Fail_CreateDATAPipe, CI_Test_Setup, CI_Test_TearDown,
                "Test_CI_InitPipe_Fail_CreateDATAPipe");
-
     UtTest_Add(Test_CI_InitData, CI_Test_Setup, CI_Test_TearDown,
                "Test_CI_InitData");
-
     UtTest_Add(Test_CI_InitApp_Fail_InitEvent, CI_Test_Setup, CI_Test_TearDown,
                "Test_CI_InitApp_Fail_InitEvent");
     UtTest_Add(Test_CI_InitApp_Fail_InitPipe, CI_Test_Setup, CI_Test_TearDown,
@@ -1571,10 +1514,8 @@ void CI_App_Test_AddTestCases(void)
                "Test_CI_InitApp_Fail_InitCDSTbl");
     UtTest_Add(Test_CI_InitApp_Nominal, CI_Test_Setup, CI_Test_TearDown,
                "Test_CI_InitApp_Nominal");
-
     UtTest_Add(Test_CI_CleanupCallback, CI_Test_Setup, CI_Test_TearDown,
                "Test_CI_CleanupCallback");
-
     UtTest_Add(Test_CI_AppMain_Fail_RegisterApp, CI_Test_Setup, CI_Test_TearDown,
                "Test_CI_AppMain_Fail_RegisterApp");
     UtTest_Add(Test_CI_AppMain_Fail_InitApp, CI_Test_Setup, CI_Test_TearDown,
@@ -1593,43 +1534,78 @@ void CI_App_Test_AddTestCases(void)
                "Test_CI_InitListenerTask_FailChild");
     UtTest_Add(Test_CI_InitListenerTask_Nominal, CI_Test_Setup, CI_Test_TearDown,
 			   "Test_CI_InitListenerTask_Nominal");
-    UtTest_Add(Test_CI_ListenerTaskMain_FailRegister, CI_Test_Setup, CI_Test_TearDown,
+    UtTest_Add(Test_CI_ListenerTaskMain_FailRegister, CI_Test_Setup_InitTbls, CI_Test_TearDown,
 			   "Test_CI_ListenerTaskMain_FailRegister");
-    UtTest_Add(Test_CI_ListenerTaskMain_LongCmd, CI_Test_Setup, CI_Test_TearDown, "Test_CI_ListenerTaskMain_LongCmd");
-    UtTest_Add(Test_CI_ValidateCmd_Bad_CCSDS, CI_Test_Setup, CI_Test_TearDown, "Test_CI_ValidateCmd_Bad_CCSDS");
-    UtTest_Add(Test_CI_ValidateCmd_No_SecHdr, CI_Test_Setup, CI_Test_TearDown, "Test_CI_ValidateCmd_No_SecHdr");
-    UtTest_Add(Test_CI_ValidateCmd_Not_Cmd, CI_Test_Setup, CI_Test_TearDown, "Test_CI_ValidateCmd_Not_Cmd");
-    UtTest_Add(Test_CI_ValidateCmd_Inv_Len, CI_Test_Setup, CI_Test_TearDown, "Test_CI_ValidateCmd_Inv_Len");
-    UtTest_Add(Test_CI_ValidateCmd_Checksum_Invalid, CI_Test_Setup, CI_Test_TearDown, "Test_CI_ValidateCmd_Checksum_Invalid");
-    UtTest_Add(Test_CI_ValidateCmd_Checksum_Valid, CI_Test_Setup, CI_Test_TearDown, "Test_CI_ValidateCmd_Checksum_Valid");
-    UtTest_Add(Test_CI_ValidateCmd_No_Checksum_Go, CI_Test_Setup, CI_Test_TearDown, "Test_CI_ValidateCmd_No_Checksum_Go");
-    UtTest_Add(Test_CI_ValidateCmd_No_Checksum_NoGo, CI_Test_Setup, CI_Test_TearDown, "Test_CI_ValidateCmd_No_Checksum_NoGo");
-    UtTest_Add(Test_CI_GetCmdAuthorized_Unreg_Opt, CI_Test_Setup, CI_Test_TearDown, "Test_CI_GetCmdAuthorized_Unreg_Opt");
-    UtTest_Add(Test_CI_GetCmdAuthorized_Unreg_Pess, CI_Test_Setup, CI_Test_TearDown, "Test_CI_GetCmdAuthorized_Unreg_Pess");
-    UtTest_Add(Test_CI_GetCmdAuthorized_1_Step, CI_Test_Setup, CI_Test_TearDown, "Test_CI_GetCmdAuthorized_1_Step");
-    UtTest_Add(Test_CI_GetCmdAuthorized_2_Step_Unauth, CI_Test_Setup, CI_Test_TearDown, "Test_CI_GetCmdAuthorized_2_Step_Unauth");
-    UtTest_Add(Test_CI_GetCmdAuthorized_2_Step_Auth, CI_Test_Setup, CI_Test_TearDown, "Test_CI_GetCmdAuthorized_2_Step_Auth");
-    UtTest_Add(Test_CI_CmdAuthorize_Not_Reg, CI_Test_Setup, CI_Test_TearDown, "Test_CI_CmdAuthorize_Not_Reg");
-    UtTest_Add(Test_CI_CmdAuthorize_Not_2_Step, CI_Test_Setup, CI_Test_TearDown, "Test_CI_CmdAuthorize_Not_2_Step");
-    UtTest_Add(Test_CI_CmdAuthorize_Inv_State, CI_Test_Setup, CI_Test_TearDown, "Test_CI_CmdAuthorize_Inv_State");
-    UtTest_Add(Test_CI_CmdAuthorize_Nominal, CI_Test_Setup, CI_Test_TearDown, "Test_CI_CmdAuthorize_Nominal");
-    UtTest_Add(Test_CI_CmdDeauthorize_Not_Reg, CI_Test_Setup, CI_Test_TearDown, "Test_CI_CmdDeauthorize_Not_Reg");
-    UtTest_Add(Test_CI_CmdDeauthorize_Not_2_Step, CI_Test_Setup, CI_Test_TearDown, "Test_CI_CmdDeauthorize_Not_2_Step");
-    UtTest_Add(Test_CI_CmdDeauthorize_Not_Auth, CI_Test_Setup, CI_Test_TearDown, "Test_CI_CmdDeauthorize_Not_Auth");
-    UtTest_Add(Test_CI_CmdDeauthorize_Nominal, CI_Test_Setup, CI_Test_TearDown, "Test_CI_CmdDeauthorize_Nominal");
-    UtTest_Add(Test_CI_CmdRegister_Inv_MsgID, CI_Test_Setup, CI_Test_TearDown, "Test_CI_CmdRegister_Inv_MsgID");
-    UtTest_Add(Test_CI_CmdRegister_Reg_Exists, CI_Test_Setup, CI_Test_TearDown, "Test_CI_CmdRegister_Reg_Exists");
-    UtTest_Add(Test_CI_CmdRegister_Full_Table, CI_Test_Setup, CI_Test_TearDown, "Test_CI_CmdRegister_Full_Table");
-    UtTest_Add(Test_CI_CmdRegister_Nominal, CI_Test_Setup, CI_Test_TearDown, "Test_CI_CmdRegister_Nominal");
-    UtTest_Add(Test_CI_CmdDeregister_Inv_MsgID, CI_Test_Setup, CI_Test_TearDown, "Test_CI_CmdDeregister_Inv_MsgID");
-    UtTest_Add(Test_CI_CmdDeregister_Not_Reg, CI_Test_Setup, CI_Test_TearDown, "Test_CI_CmdDeregister_Not_Reg");
-    UtTest_Add(Test_CI_CmdDeregister_Nominal, CI_Test_Setup, CI_Test_TearDown, "Test_CI_CmdDeregister_Nominal");
-    UtTest_Add(Test_CI_UpdateCmdReg_Inv_MsgID, CI_Test_Setup, CI_Test_TearDown, "Test_CI_UpdateCmdReg_Inv_MsgID");
-    UtTest_Add(Test_CI_UpdateCmdReg_Not_Reg, CI_Test_Setup, CI_Test_TearDown, "Test_CI_UpdateCmdReg_Not_Reg");
-    UtTest_Add(Test_CI_UpdateCmdReg_2_Step_Nominal, CI_Test_Setup, CI_Test_TearDown, "Test_CI_UpdateCmdReg_2_Step_Nominal");
-    UtTest_Add(Test_CI_UpdateCmdReg_2_Step_Auth, CI_Test_Setup, CI_Test_TearDown, "Test_CI_UpdateCmdReg_2_Step_Auth");
-    UtTest_Add(Test_CI_UpdateCmdReg_1_Step_Nominal, CI_Test_Setup, CI_Test_TearDown, "Test_CI_UpdateCmdReg_1_Step_Nominal");
-    UtTest_Add(Test_CI_ProcessTimeouts_Nominal, CI_Test_Setup, CI_Test_TearDown, "Test_CI_ProcessTimeouts_Nominal");
+    UtTest_Add(Test_CI_ListenerTaskMain_LongCmd, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_ListenerTaskMain_LongCmd");
+    UtTest_Add(Test_CI_ValidateCmd_Bad_CCSDS, CI_Test_Setup, CI_Test_TearDown,
+    			"Test_CI_ValidateCmd_Bad_CCSDS");
+    UtTest_Add(Test_CI_ValidateCmd_No_SecHdr, CI_Test_Setup, CI_Test_TearDown,
+    			"Test_CI_ValidateCmd_No_SecHdr");
+    UtTest_Add(Test_CI_ValidateCmd_Not_Cmd, CI_Test_Setup, CI_Test_TearDown,
+    			"Test_CI_ValidateCmd_Not_Cmd");
+    UtTest_Add(Test_CI_ValidateCmd_Inv_Len, CI_Test_Setup, CI_Test_TearDown,
+    			"Test_CI_ValidateCmd_Inv_Len");
+    UtTest_Add(Test_CI_ValidateCmd_Checksum_Invalid, CI_Test_Setup, CI_Test_TearDown,
+    			"Test_CI_ValidateCmd_Checksum_Invalid");
+    UtTest_Add(Test_CI_ValidateCmd_Checksum_Valid, CI_Test_Setup, CI_Test_TearDown,
+    			"Test_CI_ValidateCmd_Checksum_Valid");
+    UtTest_Add(Test_CI_ValidateCmd_No_Checksum_Go, CI_Test_Setup, CI_Test_TearDown,
+    			"Test_CI_ValidateCmd_No_Checksum_Go");
+    UtTest_Add(Test_CI_ValidateCmd_No_Checksum_NoGo, CI_Test_Setup, CI_Test_TearDown,
+    			"Test_CI_ValidateCmd_No_Checksum_NoGo");
+    UtTest_Add(Test_CI_GetCmdAuthorized_Unreg_Opt, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_GetCmdAuthorized_Unreg_Opt");
+    UtTest_Add(Test_CI_GetCmdAuthorized_Unreg_Pess, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_GetCmdAuthorized_Unreg_Pess");
+    UtTest_Add(Test_CI_GetCmdAuthorized_1_Step, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_GetCmdAuthorized_1_Step");
+    UtTest_Add(Test_CI_GetCmdAuthorized_2_Step_Unauth, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_GetCmdAuthorized_2_Step_Unauth");
+    UtTest_Add(Test_CI_GetCmdAuthorized_2_Step_Auth, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_GetCmdAuthorized_2_Step_Auth");
+    UtTest_Add(Test_CI_CmdAuthorize_Not_Reg, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_CmdAuthorize_Not_Reg");
+    UtTest_Add(Test_CI_CmdAuthorize_Not_2_Step, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_CmdAuthorize_Not_2_Step");
+    UtTest_Add(Test_CI_CmdAuthorize_Inv_State, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_CmdAuthorize_Inv_State");
+    UtTest_Add(Test_CI_CmdAuthorize_Nominal, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_CmdAuthorize_Nominal");
+    UtTest_Add(Test_CI_CmdDeauthorize_Not_Reg, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_CmdDeauthorize_Not_Reg");
+    UtTest_Add(Test_CI_CmdDeauthorize_Not_2_Step, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_CmdDeauthorize_Not_2_Step");
+    UtTest_Add(Test_CI_CmdDeauthorize_Not_Auth, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_CmdDeauthorize_Not_Auth");
+    UtTest_Add(Test_CI_CmdDeauthorize_Nominal, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_CmdDeauthorize_Nominal");
+    UtTest_Add(Test_CI_CmdRegister_Inv_MsgID, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_CmdRegister_Inv_MsgID");
+    UtTest_Add(Test_CI_CmdRegister_Reg_Exists, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_CmdRegister_Reg_Exists");
+    UtTest_Add(Test_CI_CmdRegister_Full_Table, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_CmdRegister_Full_Table");
+    UtTest_Add(Test_CI_CmdRegister_Nominal, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_CmdRegister_Nominal");
+    UtTest_Add(Test_CI_CmdDeregister_Inv_MsgID, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_CmdDeregister_Inv_MsgID");
+    UtTest_Add(Test_CI_CmdDeregister_Not_Reg, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_CmdDeregister_Not_Reg");
+    UtTest_Add(Test_CI_CmdDeregister_Nominal, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_CmdDeregister_Nominal");
+    UtTest_Add(Test_CI_UpdateCmdReg_Inv_MsgID, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_UpdateCmdReg_Inv_MsgID");
+    UtTest_Add(Test_CI_UpdateCmdReg_Not_Reg, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_UpdateCmdReg_Not_Reg");
+    UtTest_Add(Test_CI_UpdateCmdReg_2_Step_Nominal, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_UpdateCmdReg_2_Step_Nominal");
+    UtTest_Add(Test_CI_UpdateCmdReg_2_Step_Auth, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_UpdateCmdReg_2_Step_Auth");
+    UtTest_Add(Test_CI_UpdateCmdReg_1_Step_Nominal, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_UpdateCmdReg_1_Step_Nominal");
+    UtTest_Add(Test_CI_ProcessTimeouts_Nominal, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+    			"Test_CI_ProcessTimeouts_Nominal");
 
 }
 

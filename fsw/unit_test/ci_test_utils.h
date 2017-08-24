@@ -19,6 +19,7 @@ extern "C" {
  */
 
 void CI_Test_Setup(void);
+void CI_Test_Setup_InitTbls(void);
 void CI_Test_TearDown(void);
 
 
