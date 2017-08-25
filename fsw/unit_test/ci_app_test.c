@@ -506,21 +506,117 @@ void Test_CI_ListenerTaskMain_FailRegister(void)
 }
 
 /**
- * Test CI_ListenerTaskMain(),
+ * Test CI_ListenerTaskMain(), Long Cmd
  */
 void Test_CI_ListenerTaskMain_LongCmd(void)
 {
-	/* Set to cause to fail */
-	//INIT_CUSTOM_RET = -1;//
-	READ_MSG_RET = -1;
-
+	/* Prevent more than one loop */
 	CI_AppData.IngestActive = FALSE;
+
+	/* Set to cause to fail */
+	READ_MSG_RET = LONG_CMD;
 
 	/* Execute the function being tested */
 	CI_ListenerTaskMain();
 
-	/* If this occurs no events will be sent because the task isn't registered with CFE */
-	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==0,"Event Count = 0");
+	/* Verify results */
+	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==1,"Event Count = 1");
+	UtAssert_EventSent(CI_CMD_INGEST_ERR_EID, CFE_EVS_ERROR, "", "Cmd dropped, too long");
+}
+
+/**
+ * Test CI_ListenerTaskMain(), Invalid Cmd
+ */
+void Test_CI_ListenerTaskMain_Inv_Cmd(void)
+{
+	/* Prevent more than one loop */
+	CI_AppData.IngestActive = FALSE;
+
+	/* Set to cause to fail */
+	READ_MSG_RET = INV_CMD;
+
+	/* Execute the function being tested */
+	CI_ListenerTaskMain();
+
+	/* Verify results */
+	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==1,"Event Count = 1");
+	UtAssert_EventSent(CI_CMD_INVALID_EID, CFE_EVS_ERROR, "Rcvd invalid cmd", "Rcvd invalid cmd");
+}
+
+/**
+ * Test CI_ListenerTaskMain(), CI Cmd
+ */
+void Test_CI_ListenerTaskMain_CI_Cmd(void)
+{
+	/* Prevent more than one loop */
+	CI_AppData.IngestActive = FALSE;
+
+	/* Set to cause to fail */
+	READ_MSG_RET = CI_CMD;
+
+	/* Execute the function being tested */
+	CI_ListenerTaskMain();
+
+	/* Verify results */
+	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==1,"Event Count = 1");
+	UtAssert_EventSent(CI_CMD_INF_EID, CFE_EVS_INFORMATION, "", "Recvd NOOP cmd");
+}
+
+/**
+ * Test CI_ListenerTaskMain(), External Cmd Unauthorized
+ */
+void Test_CI_ListenerTaskMain_Ext_Cmd_Unauth(void)
+{
+	/* Prevent more than one loop */
+	CI_AppData.IngestActive = FALSE;
+
+	/* Set to cause to fail */
+	READ_MSG_RET = EXT_STEP_2;
+
+	/* Execute the function being tested */
+	CI_ListenerTaskMain();
+
+	/* Verify results */
+	//UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==1,"Event Count = 1");
+	//UtAssert_EventSent(CI_CMD_INF_EID, CFE_EVS_INFORMATION, "", "Recvd NOOP cmd");
+}
+
+/**
+ * Test CI_ListenerTaskMain(), External Cmd Authorized
+ */
+void Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_1(void)
+{
+	/* Prevent more than one loop */
+	CI_AppData.IngestActive = FALSE;
+
+	/* Set to cause to fail */
+	READ_MSG_RET = EXT_STEP_1;
+
+	/* Execute the function being tested */
+	CI_ListenerTaskMain();
+
+	/* Verify results */
+	//UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==1,"Event Count = 1");
+	//UtAssert_EventSent(CI_CMD_INGEST_ERR_EID, CFE_EVS_ERROR, "", "Cmd dropped, too long");
+}
+
+/**
+ * Test CI_ListenerTaskMain(), External Cmd Authorized
+ */
+void Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_2(void)
+{
+	/* Prevent more than one loop */
+	CI_AppData.IngestActive = FALSE;
+
+	/* Set to cause to fail */
+	READ_MSG_RET = EXT_STEP_2;
+
+	/* Execute the function being tested */
+	CI_ListenerTaskMain();
+
+	/* Verify results */
+	//UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==1,"Event Count = 1");
+	//UtAssert_EventSent(CI_CMD_INGEST_ERR_EID, CFE_EVS_ERROR, "", "Cmd dropped, too long");
 }
 
 /**
@@ -1606,7 +1702,16 @@ void CI_App_Test_AddTestCases(void)
     			"Test_CI_UpdateCmdReg_1_Step_Nominal");
     UtTest_Add(Test_CI_ProcessTimeouts_Nominal, CI_Test_Setup_InitTbls, CI_Test_TearDown,
     			"Test_CI_ProcessTimeouts_Nominal");
-
+    UtTest_Add(Test_CI_ListenerTaskMain_Inv_Cmd, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+				"Test_CI_ListenerTaskMain_Inv_Cmd");
+    UtTest_Add(Test_CI_ListenerTaskMain_CI_Cmd, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+				"Test_CI_ListenerTaskMain_CI_Cmd");
+    UtTest_Add(Test_CI_ListenerTaskMain_Ext_Cmd_Unauth, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+				"Test_CI_ListenerTaskMain_Ext_Cmd_Unath");
+    UtTest_Add(Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_1, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+            			"Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_1");
+    UtTest_Add(Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_2, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+                			"Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_2");
 }
 
 

@@ -34,10 +34,12 @@ int32 CI_ReadMessage(char* buffer, uint32* size)
 	/* Create CFE_SB_Msg_t */
 	if(READ_MSG_RET == CI_CMD)
 	{
+		// Noop
 		CI_NoArgCmd_t 	cmd;
 		uint32  		MsgSize = sizeof(cmd);
 		CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
-		*size = &cmd;
+		*size = MsgSize;
+		buffer = &cmd;
 	}
 	else if(READ_MSG_RET == EXT_STEP_1)
 	{
@@ -48,7 +50,8 @@ int32 CI_ReadMessage(char* buffer, uint32* size)
 		regDataPtr->msgID = TEST_MSG_ID;
 		regDataPtr->step = STEP_1;
 		CI_CmdRegister(&cmd);
-		*size = &cmd;
+		*size = MsgSize;
+		buffer = &cmd;
 	}
 	else if(READ_MSG_RET == EXT_STEP_2)
 	{
@@ -59,7 +62,25 @@ int32 CI_ReadMessage(char* buffer, uint32* size)
 		regDataPtr->msgID = TEST_MSG_ID;
 		regDataPtr->step = STEP_2;
 		CI_CmdRegister(&cmd);
-		*size = &cmd;
+		*size = MsgSize;
+		buffer = &cmd;
+	}
+
+	else if(READ_MSG_RET == LONG_CMD)
+	{
+		*size = CI_MAX_CMD_INGEST + 1;
+	}
+
+	else if(READ_MSG_RET == INV_CMD)
+	{
+		CI_NoArgCmd_t 	cmd;
+		uint32  		MsgSize = sizeof(cmd);
+		CFE_SB_MsgPtr_t CmdMsgPtr;
+		CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
+		CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
+		CCSDS_WR_VERS(CmdMsgPtr->Hdr, 1);
+		*size = MsgSize;
+		buffer = &cmd;
 	}
 
 	return 0;

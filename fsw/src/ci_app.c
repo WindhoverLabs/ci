@@ -1013,13 +1013,16 @@ void CI_ListenerTaskMain(void)
 	{
 		/* Receive data and place in IngestBuffer */
 		do{
+			printf("Reading \n");
 			MsgSize = CI_MAX_CMD_INGEST;
 			CI_ReadMessage(CI_AppData.IngestBuffer, &MsgSize);
+			printf("mgsSize %i\n", MsgSize);
 			if(MsgSize > 0)
 			{
 				/* If number of bytes received less than max */
 				if (MsgSize <= CI_MAX_CMD_INGEST)
 				{
+					printf("Size good \n");
 					/* Verify validity of cmd */
 					CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
 					if (CI_ValidateCmd(CmdMsgPtr, MsgSize) == TRUE)
@@ -1028,10 +1031,12 @@ void CI_ListenerTaskMain(void)
 						CmdMsgId = CFE_SB_GetMsgId(CmdMsgPtr);
 						if (CI_CMD_MID == CmdMsgId)
 						{
+							printf("CI cmd \n");
 							CI_ProcessNewAppCmds(CmdMsgPtr);
 						}
 						else
 						{
+							printf("EXT cmd \n");
 							/* Verify cmd is authorized */
 							if (CI_GetCmdAuthorized(CmdMsgPtr) == TRUE)
 							{
@@ -1044,6 +1049,7 @@ void CI_ListenerTaskMain(void)
 					}
 					else
 					{
+						printf("Invalid \n");
 						CI_AppData.HkTlm.usCmdErrCnt++;
 						CFE_EVS_SendEvent (CI_CMD_INVALID_EID, CFE_EVS_ERROR, "Rcvd invalid cmd");
 					}
