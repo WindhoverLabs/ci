@@ -13,6 +13,7 @@ typedef enum
 	CI_CMD,
 	EXT_STEP_1,
 	EXT_STEP_2,
+	EXT_STEP_2_AUTH,
 	LONG_CMD,
 	INV_CMD
 } CI_RecvMsgs_t;

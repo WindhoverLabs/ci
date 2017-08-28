@@ -1013,16 +1013,19 @@ void CI_ListenerTaskMain(void)
 	{
 		/* Receive data and place in IngestBuffer */
 		do{
-			printf("Reading \n");
 			MsgSize = CI_MAX_CMD_INGEST;
 			CI_ReadMessage(CI_AppData.IngestBuffer, &MsgSize);
-			printf("mgsSize %i\n", MsgSize);
+			//OS_printf("Buffer: %i,\n", CI_AppData.IngestBuffer);
+			for (int i = 0; i < MsgSize; i++)
+			{
+				printf("%i ", CI_AppData.IngestBuffer[i]);
+			}
+			OS_printf("\nEnd buffer\n");
 			if(MsgSize > 0)
 			{
 				/* If number of bytes received less than max */
 				if (MsgSize <= CI_MAX_CMD_INGEST)
 				{
-					printf("Size good \n");
 					/* Verify validity of cmd */
 					CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
 					if (CI_ValidateCmd(CmdMsgPtr, MsgSize) == TRUE)

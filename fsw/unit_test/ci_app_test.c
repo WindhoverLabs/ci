@@ -577,46 +577,50 @@ void Test_CI_ListenerTaskMain_Ext_Cmd_Unauth(void)
 	CI_ListenerTaskMain();
 
 	/* Verify results */
-	//UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==1,"Event Count = 1");
-	//UtAssert_EventSent(CI_CMD_INF_EID, CFE_EVS_INFORMATION, "", "Recvd NOOP cmd");
+	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==2,"Event Count = 2");
+	UtAssert_EventSent(CI_CMD_UNAUTHORIZED_EID, CFE_EVS_ERROR, "Cmd not authorized", "Cmd not authorized");
+	UtAssert_True(CI_AppData.HkTlm.usCmdErrCnt==1,"CmdErrCnt = 1");
 }
 
 /**
- * Test CI_ListenerTaskMain(), External Cmd Authorized
+ * Test CI_ListenerTaskMain(), External Cmd Step 1
  */
 void Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_1(void)
 {
 	/* Prevent more than one loop */
 	CI_AppData.IngestActive = FALSE;
 
-	/* Set to cause to fail */
+	/* Set to cause to pass */
 	READ_MSG_RET = EXT_STEP_1;
 
 	/* Execute the function being tested */
 	CI_ListenerTaskMain();
 
 	/* Verify results */
-	//UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==1,"Event Count = 1");
-	//UtAssert_EventSent(CI_CMD_INGEST_ERR_EID, CFE_EVS_ERROR, "", "Cmd dropped, too long");
+	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==1,"Event Count = 1");
+	UtAssert_True(CI_AppData.HkTlm.IngestMsgCount==1,"Ingest Count = 1");
 }
 
 /**
- * Test CI_ListenerTaskMain(), External Cmd Authorized
+ * Test CI_ListenerTaskMain(), External Cmd Step 2 Authorized
  */
 void Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_2(void)
 {
+	CI_CmdData_t		*CmdData = NULL;
+
 	/* Prevent more than one loop */
 	CI_AppData.IngestActive = FALSE;
 
 	/* Set to cause to fail */
-	READ_MSG_RET = EXT_STEP_2;
+	READ_MSG_RET = EXT_STEP_2_AUTH;
 
 	/* Execute the function being tested */
 	CI_ListenerTaskMain();
 
 	/* Verify results */
-	//UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==1,"Event Count = 1");
-	//UtAssert_EventSent(CI_CMD_INGEST_ERR_EID, CFE_EVS_ERROR, "", "Cmd dropped, too long");
+	CmdData = CI_GetRegisterdCmd(TEST_MSG_ID, TEST_CC);
+	UtAssert_True(CmdData->state==UNAUTHORIZED,"Cmd unauthorized");
+	UtAssert_True(CI_AppData.HkTlm.IngestMsgCount==1,"Ingest count = 1");
 }
 
 /**
