@@ -578,7 +578,7 @@ void Test_CI_ListenerTaskMain_Ext_Cmd_Unauth(void)
 	/* Verify results */
 	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==2,"Event Count = 2");
 	UtAssert_EventSent(CI_CMD_UNAUTHORIZED_EID, CFE_EVS_ERROR, "Cmd not authorized", "Cmd not authorized");
-	UtAssert_True(CI_AppData.HkTlm.usCmdErrCnt==1,"CmdErrCnt = 1");
+	UtAssert_True(CI_AppData.HkTlm.IngestErrorCount==1,"CmdErrCnt = 1");
 }
 
 /**

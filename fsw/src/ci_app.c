@@ -942,7 +942,7 @@ boolean CI_GetCmdAuthorized(CFE_SB_Msg_t* MsgPtr)
 CI_GetCmdAuthorized_Exit_tag:
 	if (bResult == FALSE)
 	{
-		CI_AppData.HkTlm.usCmdErrCnt++;
+		CI_AppData.HkTlm.IngestErrorCount++;
 		CFE_EVS_SendEvent (CI_CMD_UNAUTHORIZED_EID, CFE_EVS_ERROR, "Cmd not authorized");
 	}
 
