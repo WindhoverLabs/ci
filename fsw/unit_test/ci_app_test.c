@@ -727,6 +727,7 @@ void Test_CI_ValidateCmd_Checksum_Invalid(void)
 	uint32  		MsgSize = sizeof(cmd);
 	CFE_SB_MsgPtr_t CmdMsgPtr;
 	CCSDS_CmdPkt_t	*cmdPkt = 0;
+	uint8 			CheckSum;
 
 	/* Create CFE_SB_Msg_t */
 	CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
@@ -734,7 +735,7 @@ void Test_CI_ValidateCmd_Checksum_Invalid(void)
 	cmdPkt = (CCSDS_CmdPkt_t *)CmdMsgPtr;
 
 	/* Set to cause to fail */
-	uint8 CheckSum = CCSDS_ComputeCheckSum(CmdMsgPtr);
+	CheckSum = CCSDS_ComputeCheckSum(cmdPkt);
 	CheckSum++;
 	CCSDS_WR_CHECKSUM(cmdPkt->SecHdr, CheckSum);
 
@@ -754,13 +755,15 @@ void Test_CI_ValidateCmd_Checksum_Valid(void)
 	CI_NoArgCmd_t 	cmd;
 	uint32  		MsgSize = sizeof(cmd);
 	CFE_SB_MsgPtr_t CmdMsgPtr;
+	CCSDS_CmdPkt_t	*cmdPkt = 0;
 
 	/* Create CFE_SB_Msg_t */
 	CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
 	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
+	cmdPkt = (CCSDS_CmdPkt_t *)CmdMsgPtr;
 
 	/* Set to cause to pass */
-	CCSDS_LoadCheckSum(CmdMsgPtr);
+	CCSDS_LoadCheckSum(cmdPkt);
 
 	/* Execute the function being tested */
 	retCode = CI_ValidateCmd(CmdMsgPtr, MsgSize);
@@ -872,21 +875,25 @@ void Test_CI_GetCmdAuthorized_1_Step(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
+
 
 	/* Register a new 1-step cmd */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = TEST_MSG_ID;
-	CI_CmdRegister(&cmdReg);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
+	CI_CmdRegister(CmdMsgPtr);
 
 	/* Create CFE_SB_Msg_t */
 	MsgSize = sizeof(cmd);
 	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
 	cmdPtr->msgID = TEST_MSG_ID;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)cmdPtr;
 
 	/* Execute the function being tested */
-	retCode = CI_GetCmdAuthorized(cmdPtr);
+	retCode = CI_GetCmdAuthorized(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_True(retCode==TRUE,"Authorized = TRUE");
@@ -903,22 +910,25 @@ void Test_CI_GetCmdAuthorized_2_Step_Unauth(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Register a new 2-step cmd */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_2;
-	CI_CmdRegister(&cmdReg);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
+	CI_CmdRegister(CmdMsgPtr);
 
 	/* Create CFE_SB_Msg_t */
 	MsgSize = sizeof(cmd);
 	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
 	cmdPtr->msgID = TEST_MSG_ID;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)cmdPtr;
 
 	/* Execute the function being tested */
-	retCode = CI_GetCmdAuthorized(cmdPtr);
+	retCode = CI_GetCmdAuthorized(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_True(retCode==FALSE,"Authorized = FALSE");
@@ -935,23 +945,26 @@ void Test_CI_GetCmdAuthorized_2_Step_Auth(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Register a new 2-step cmd */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_2;
-	CI_CmdRegister(&cmdReg);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
+	CI_CmdRegister(CmdMsgPtr);
 
 	/* Authorize the cmd */
 	MsgSize = sizeof(cmd);
 	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
-	cmdPtr = ((CI_CmdRegData_t *) &cmd);
+	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
 	cmdPtr->msgID = TEST_MSG_ID;
-	CI_CmdAuthorize(cmdPtr);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)cmdPtr;
+	CI_CmdAuthorize(CmdMsgPtr);
 
 	/* Execute the function being tested */
-	retCode = CI_GetCmdAuthorized(cmdPtr);
+	retCode = CI_GetCmdAuthorized(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_True(retCode==TRUE,"Authorized = TRUE");
@@ -970,11 +983,12 @@ void Test_CI_CmdAuthorize_Not_Reg(void)
 	/* Init the cmd */
 	MsgSize = sizeof(cmd);
 	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
-	cmdPtr = ((CI_CmdRegData_t *) &cmd);
+	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
 	cmdPtr->msgID = TEST_MSG_ID;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)cmdPtr;
 
 	/* Execute the function being tested */
-	CI_CmdAuthorize(cmdPtr);
+	CI_CmdAuthorize(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_AUTH_NOT_REG_EID, CFE_EVS_ERROR, "Cmd not registered", "Cmd not registered");
@@ -992,22 +1006,25 @@ void Test_CI_CmdAuthorize_Not_2_Step(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Register a new 1-step cmd - generates 1 event */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_1;
-	CI_CmdRegister(&cmdReg);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
+	CI_CmdRegister(CmdMsgPtr);
 
 	/* Authorize the cmd */
 	MsgSize = sizeof(cmd);
 	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
-	cmdPtr = ((CI_CmdRegData_t *) &cmd);
+	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
 	cmdPtr->msgID = TEST_MSG_ID;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)cmdPtr;
 
 	/* Execute the function being tested */
-	CI_CmdAuthorize(cmdPtr);
+	CI_CmdAuthorize(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_AUTH_INV_MODE_EID, CFE_EVS_ERROR, "Cmd not 2-step", "Cmd not 2-step");
@@ -1025,23 +1042,26 @@ void Test_CI_CmdAuthorize_Inv_State(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Register a new 2-step cmd - generates 1 event */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_2;
-	CI_CmdRegister(&cmdReg);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
+	CI_CmdRegister(CmdMsgPtr);
 
 	/* Authorize the cmd */
 	MsgSize = sizeof(cmd);
 	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
-	cmdPtr = ((CI_CmdRegData_t *) &cmd);
+	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
 	cmdPtr->msgID = TEST_MSG_ID;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)cmdPtr;
 
 	/* Execute the function being tested twice */
-	CI_CmdAuthorize(cmdPtr);
-	CI_CmdAuthorize(cmdPtr);
+	CI_CmdAuthorize(CmdMsgPtr);
+	CI_CmdAuthorize(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd authorized", "Cmd authorized");
@@ -1061,22 +1081,25 @@ void Test_CI_CmdAuthorize_Nominal(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Register a new 2-step cmd - generates 1 event */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_2;
-	CI_CmdRegister(&cmdReg);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
+	CI_CmdRegister(CmdMsgPtr);
 
 	/* Authorize the cmd */
 	MsgSize = sizeof(cmd);
 	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
-	cmdPtr = ((CI_CmdRegData_t *) &cmd);
+	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
 	cmdPtr->msgID = TEST_MSG_ID;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)cmdPtr;
 
 	/* Execute the function being tested */
-	CI_CmdAuthorize(cmdPtr);
+	CI_CmdAuthorize(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd authorized", "Cmd authorized");
@@ -1092,15 +1115,17 @@ void Test_CI_CmdDeauthorize_Not_Reg(void)
 	CI_CmdAuthData_t 	cmd;
 	CI_CmdAuthData_t 	*cmdPtr;
 	uint32  			MsgSize;
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Deauthorize the cmd */
 	MsgSize = sizeof(cmd);
 	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
 	cmdPtr->msgID = TEST_MSG_ID;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)cmdPtr;
 
 	/* Execute the function being tested */
-	CI_CmdDeauthorize(cmdPtr);
+	CI_CmdDeauthorize(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_DEAUTH_NOT_REG_EID, CFE_EVS_ERROR, "Cmd not registered", "Cmd not registered");
@@ -1118,22 +1143,25 @@ void Test_CI_CmdDeauthorize_Not_2_Step(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Register a new 2-step cmd - generates 1 event */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_1;
-	CI_CmdRegister(&cmdReg);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
+	CI_CmdRegister(CmdMsgPtr);
 
 	/* Deauthorize the cmd */
 	MsgSize = sizeof(cmd);
 	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
-	cmdPtr = ((CI_CmdRegData_t *) &cmd);
+	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
 	cmdPtr->msgID = TEST_MSG_ID;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)cmdPtr;
 
 	/* Execute the function being tested */
-	CI_CmdDeauthorize(cmdPtr);
+	CI_CmdDeauthorize(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_DEAUTH_INV_MODE_EID, CFE_EVS_ERROR, "Cmd not 2-step", "Cmd not 2-step");
@@ -1152,22 +1180,25 @@ void Test_CI_CmdDeauthorize_Not_Auth(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Register a new 2-step cmd - generates 1 event */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_2;
-	CI_CmdRegister(&cmdReg);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
+	CI_CmdRegister(CmdMsgPtr);
 
 	/* Deauthorize the cmd */
 	MsgSize = sizeof(cmd);
 	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
-	cmdPtr = ((CI_CmdRegData_t *) &cmd);
+	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
 	cmdPtr->msgID = TEST_MSG_ID;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)cmdPtr;
 
 	/* Execute the function being tested */
-	CI_CmdDeauthorize(cmdPtr);
+	CI_CmdDeauthorize(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_DEAUTH_INV_STATE_EID, CFE_EVS_ERROR, "Cmd not authorized", "Cmd not authorized");
@@ -1186,23 +1217,26 @@ void Test_CI_CmdDeauthorize_Nominal(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Register a new 2-step cmd - generates 1 event */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_2;
-	CI_CmdRegister(&cmdReg);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
+	CI_CmdRegister(CmdMsgPtr);
 
 	/* Deauthorize the cmd */
 	MsgSize = sizeof(cmd);
 	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
-	cmdPtr = ((CI_CmdRegData_t *) &cmd);
+	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
 	cmdPtr->msgID = TEST_MSG_ID;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)cmdPtr;
 
 	/* Execute the function being tested */
-	CI_CmdAuthorize(cmdPtr);
-	CI_CmdDeauthorize(cmdPtr);
+	CI_CmdAuthorize(CmdMsgPtr);
+	CI_CmdDeauthorize(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_DEAUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd deauthorized", "Cmd deauthorized");
@@ -1220,14 +1254,16 @@ void Test_CI_CmdRegister_Inv_MsgID(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Register a new cmd */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = 0;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
 
 	/* Execute the function being tested */
-	CI_CmdRegister(&cmdReg);
+	CI_CmdRegister(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to register cmd", "Unable to register cmd");
@@ -1243,15 +1279,17 @@ void Test_CI_CmdRegister_Reg_Exists(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Register a new cmd */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = TEST_MSG_ID;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
 
 	/* Execute the function being tested */
-	CI_CmdRegister(&cmdReg);
-	CI_CmdRegister(&cmdReg);
+	CI_CmdRegister(CmdMsgPtr);
+	CI_CmdRegister(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_ALREADY_REGISTERED_EID, CFE_EVS_ERROR, "Cmd already registered", "Cmd already registered");
@@ -1270,6 +1308,7 @@ void Test_CI_CmdRegister_Full_Table(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 	uint32 				i = 0;
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Populate entire config tbl */
 	for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
@@ -1281,9 +1320,10 @@ void Test_CI_CmdRegister_Full_Table(void)
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = TEST_MSG_ID;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
 
 	/* Execute the function being tested */
-	CI_CmdRegister(&cmdReg);
+	CI_CmdRegister(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to register cmd", "Unable to register cmd");
@@ -1299,14 +1339,16 @@ void Test_CI_CmdRegister_Nominal(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Register a new cmd */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = TEST_MSG_ID;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
 
 	/* Execute the function being tested */
-	CI_CmdRegister(&cmdReg);
+	CI_CmdRegister(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "Cmd registered", "Cmd registered");
@@ -1324,14 +1366,16 @@ void Test_CI_CmdDeregister_Inv_MsgID(void)
 	CI_CmdAuthData_t 	cmdReg;
 	CI_CmdAuthData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Deregister a cmd */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
-	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
+	regDataPtr = ((CI_CmdAuthData_t *) &cmdReg);
 	regDataPtr->msgID = 0;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
 
 	/* Execute the function being tested */
-	CI_CmdDeregister(&cmdReg);
+	CI_CmdDeregister(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to deregister cmd", "Unable to deregister cmd");
@@ -1347,14 +1391,16 @@ void Test_CI_CmdDeregister_Not_Reg(void)
 	CI_CmdAuthData_t 	cmdReg;
 	CI_CmdAuthData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Deregister a new cmd */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
-	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
+	regDataPtr = ((CI_CmdAuthData_t *) &cmdReg);
 	regDataPtr->msgID = TEST_MSG_ID;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
 
 	/* Execute the function being tested */
-	CI_CmdDeregister(&cmdReg);
+	CI_CmdDeregister(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_NOT_REGISTERED_EID, CFE_EVS_ERROR, "Cmd not registered", "Cmd not registered");
@@ -1372,20 +1418,23 @@ void Test_CI_CmdDeregister_Nominal(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Register and Deregister a new cmd */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = TEST_MSG_ID;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
 
 	MsgSize = sizeof(cmd);
 	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
-	cmdPtr = ((CI_CmdRegData_t *) &cmd);
+	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
 	cmdPtr->msgID = TEST_MSG_ID;
 
 	/* Execute the function being tested */
-	CI_CmdRegister(&cmdReg);
-	CI_CmdDeregister(&cmd);
+	CI_CmdRegister(CmdMsgPtr);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
+	CI_CmdDeregister(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "Cmd registered", "Cmd registered");
@@ -1402,14 +1451,16 @@ void Test_CI_UpdateCmdReg_Inv_MsgID(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Register a new cmd */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = 0;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
 
 	/* Execute the function being tested */
-	CI_UpdateCmdReg(&cmdReg);
+	CI_UpdateCmdReg(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to update cmd", "Unable to update cmd");
@@ -1425,14 +1476,16 @@ void Test_CI_UpdateCmdReg_Not_Reg(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Register a new cmd */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = TEST_MSG_ID;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
 
 	/* Execute the function being tested */
-	CI_UpdateCmdReg(&cmdReg);
+	CI_UpdateCmdReg(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_NOT_REGISTERED_EID, CFE_EVS_ERROR, "Cmd not registered", "Cmd not registered");
@@ -1451,6 +1504,7 @@ void Test_CI_UpdateCmdReg_2_Step_Nominal(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 	CI_CmdData_t		*CmdData = NULL;
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Register a new cmd */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
@@ -1458,15 +1512,17 @@ void Test_CI_UpdateCmdReg_2_Step_Nominal(void)
 	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->cmdCode = TEST_CC;
 	regDataPtr->step = STEP_2;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
 
 	/* Execute functions required */
-	CI_CmdRegister(&cmdReg);
+	CI_CmdRegister(CmdMsgPtr);
 
 	/* Change a value */
 	regDataPtr->step = STEP_1;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
 
 	/* Execute the function being tested */
-	CI_UpdateCmdReg(&cmdReg);
+	CI_UpdateCmdReg(CmdMsgPtr);
 
 	/* Verify results */
 	CmdData = CI_GetRegisterdCmd(TEST_MSG_ID, TEST_CC);
@@ -1487,25 +1543,29 @@ void Test_CI_UpdateCmdReg_2_Step_Auth(void)
 	CI_CmdRegData_t 	cmdReg;
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Register a new cmd */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_2;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
 
 	/* Authorize the cmd */
 	MsgSize = sizeof(cmd);
 	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
-	cmdPtr = ((CI_CmdRegData_t *) &cmd);
+	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
 	cmdPtr->msgID = TEST_MSG_ID;
 
 	/* Execute functions required */
-	CI_CmdRegister(&cmdReg);
-	CI_CmdAuthorize(&cmd);
+	CI_CmdRegister(CmdMsgPtr);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
+	CI_CmdAuthorize(CmdMsgPtr);
 
 	/* Execute the function being tested */
-	CI_UpdateCmdReg(&cmdReg);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
+	CI_UpdateCmdReg(CmdMsgPtr);
 
 	/* Verify results */
 	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "Cmd registered", "Cmd registered");
@@ -1526,21 +1586,24 @@ void Test_CI_UpdateCmdReg_1_Step_Nominal(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  			MsgSize = sizeof(cmdReg);
 	CI_CmdData_t		*CmdData = NULL;
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
 	/* Register a new cmd */
 	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
 	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
 	regDataPtr->msgID = TEST_MSG_ID;
 	regDataPtr->step = STEP_1;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
 
 	/* Execute functions required */
-	CI_CmdRegister(&cmdReg);
+	CI_CmdRegister(CmdMsgPtr);
 
 	/* Change a value */
 	regDataPtr->step = STEP_2;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
 
 	/* Execute the function being tested */
-	CI_UpdateCmdReg(&cmdReg);
+	CI_UpdateCmdReg(CmdMsgPtr);
 
 	/* Verify results */
 	CmdData = CI_GetRegisterdCmd(TEST_MSG_ID, TEST_CC);
@@ -1556,19 +1619,42 @@ void Test_CI_UpdateCmdReg_1_Step_Nominal(void)
  */
 void Test_CI_ProcessTimeouts_Nominal(void)
 {
-	CFE_SB_MsgPtr_t CmdMsgPtr;
-	CI_CmdRegData_t *regDataPtr;
-	//CmdMsgPtr = (CFE_SB_MsgPtr_t);
+	CI_CmdAuthData_t 	cmd;
+	CI_CmdAuthData_t 	*cmdPtr;
+	CI_CmdRegData_t 	cmdReg;
+	CI_CmdRegData_t 	*regDataPtr;
+	uint32  			MsgSize = sizeof(cmdReg);
+	uint32 				i = -1;
+	uint32 				timeout = -1;
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
-	/* Set to cause to fail */
-	//INIT_CUSTOM_RET = -1;//
-	READ_MSG_RET = -1;
+	/* Register a new cmd */
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
+	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
+	regDataPtr->msgID = TEST_MSG_ID;
+	regDataPtr->step = STEP_2;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
+
+	/* Authorize the cmd */
+	MsgSize = sizeof(cmd);
+	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
+	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
+	cmdPtr->msgID = TEST_MSG_ID;
+
+	/* Execute functions required */
+	CI_CmdRegister(CmdMsgPtr);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
+	CI_CmdAuthorize(CmdMsgPtr);
+
+	/* Get the current timeout for the authorized cmd */
+	i = CI_GetRegisterdCmdIdx(TEST_MSG_ID, TEST_CC);
+	timeout = CI_AppData.TimeoutTbl.time[i];
 
 	/* Execute the function being tested */
-	//CI_UpdateCmdReg(CmdMsgPtr);
+	CI_ProcessTimeouts();
 
 	/* Verify results */
-	//UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==0,"Event Count = 0");
+	UtAssert_True(CI_AppData.TimeoutTbl.time[i]==timeout-1,"Timeout decrement");
 }
 
 
@@ -1710,6 +1796,8 @@ void CI_App_Test_AddTestCases(void)
             			"Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_1");
     UtTest_Add(Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_2, CI_Test_Setup_InitTbls, CI_Test_TearDown,
                 			"Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_2");
+    UtTest_Add(Test_CI_ProcessTimeouts_Nominal, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+                    			"Test_CI_ProcessTimeouts_Nominal");
 }
 
 

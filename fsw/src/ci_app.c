@@ -658,7 +658,7 @@ void CI_CmdDeregister(CFE_SB_Msg_t* MsgPtr)
 	if (CI_VerifyCmdLength (MsgPtr, ExpectedLength))
 	{
 		/* Verify msgID is nonzero */
-		regDataPtr = ((CI_CmdRegData_t *) MsgPtr);
+		regDataPtr = ((CI_CmdAuthData_t *) MsgPtr);
 		if (regDataPtr->msgID != 0)
 		{
 			/* Check if command is registered */
@@ -861,7 +861,7 @@ boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr, uint32 MsgSize)
 	cmdPkt = (CCSDS_CmdPkt_t *)MsgPtr;
 	if (CCSDS_RD_CHECKSUM(cmdPkt->SecHdr) != 0)
 	{
-		if (CFE_SB_ValidateChecksum(MsgPtr) != TRUE)
+		if (CFE_SB_ValidateChecksum((CFE_SB_MsgPtr_t)MsgPtr) != TRUE)
 		{
 			goto CI_ValidateCmd_Exit_Tag;
 		}

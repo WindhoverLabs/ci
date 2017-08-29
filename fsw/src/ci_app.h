@@ -22,6 +22,7 @@
 #include "ci_config_utils.h"
 #include "ci_cds_utils.h"
 #include "ci_tbldefs.h"
+#include "ci_custom.h"
 
 #ifdef __cplusplus
 extern "C" {

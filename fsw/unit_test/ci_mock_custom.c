@@ -5,7 +5,7 @@ int INIT_CUSTOM_RET = NOMINAL;
 int READ_MSG_RET;
 
 uint8 ci_noop_buf[CI_MAX_CMD_INGEST] = {25,5,192,0,0,1,0,0};
-uint8 ext_buf[CI_MAX_CMD_INGEST] = {28,41,192,0,0,1,0,0};//EA {16,101,192,2,0,1,0,0};
+uint8 ext_buf[CI_MAX_CMD_INGEST] = {28,41,192,0,0,1,0,0};
 int TEST_MSG_ID = 1065;
 int TEST_CC = 0;
 
@@ -33,10 +33,8 @@ int32 CI_InitCustom(void)
 
 int32 CI_ReadMessage(char* buffer, uint32* size)
 {
-	/* Create CFE_SB_Msg_t */
 	if(READ_MSG_RET == CI_CMD)
 	{
-		// Noop
 		CI_NoArgCmd_t 	cmd;
 		uint32  		MsgSize = sizeof(cmd);
 		CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
@@ -52,11 +50,14 @@ int32 CI_ReadMessage(char* buffer, uint32* size)
 		CI_CmdRegData_t 	cmd;
 		CI_CmdRegData_t 	*regDataPtr;
 		uint32  			MsgSize = sizeof(cmd);
+		CFE_SB_MsgPtr_t 	CmdMsgPtr;
+
 		CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 		regDataPtr = ((CI_CmdRegData_t *) &cmd);
 		regDataPtr->msgID = TEST_MSG_ID;
 		regDataPtr->step = STEP_1;
-		CI_CmdRegister(&cmd);
+		CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
+		CI_CmdRegister(CmdMsgPtr);
 
 		MsgSize = sizeof(CI_NoArgCmd_t);
 		*size = MsgSize;
@@ -71,11 +72,14 @@ int32 CI_ReadMessage(char* buffer, uint32* size)
 		CI_CmdRegData_t 	*regDataPtr;
 		CI_CmdData_t		*CmdData = NULL;
 		uint32  			MsgSize = sizeof(cmd);
+		CFE_SB_MsgPtr_t 	CmdMsgPtr;
+
 		CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 		regDataPtr = ((CI_CmdRegData_t *) &cmd);
 		regDataPtr->msgID = TEST_MSG_ID;
 		regDataPtr->step = STEP_2;
-		CI_CmdRegister(&cmd);
+		CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
+		CI_CmdRegister(CmdMsgPtr);
 
 		MsgSize = sizeof(CI_NoArgCmd_t);
 		*size = MsgSize;
@@ -90,11 +94,15 @@ int32 CI_ReadMessage(char* buffer, uint32* size)
 		CI_CmdRegData_t 	*regDataPtr;
 		CI_CmdData_t		*CmdData = NULL;
 		uint32  			MsgSize = sizeof(cmd);
+		CFE_SB_MsgPtr_t 	CmdMsgPtr;
+
 		CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 		regDataPtr = ((CI_CmdRegData_t *) &cmd);
 		regDataPtr->msgID = TEST_MSG_ID;
 		regDataPtr->step = STEP_2;
-		CI_CmdRegister(&cmd);
+		CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
+		CI_CmdRegister(CmdMsgPtr);
+
 		CmdData = CI_GetRegisterdCmd(TEST_MSG_ID, TEST_CC);
 		CmdData->state = AUTHORIZED;
 
@@ -114,12 +122,13 @@ int32 CI_ReadMessage(char* buffer, uint32* size)
 	{
 		CI_NoArgCmd_t 	cmd;
 		uint32  		MsgSize = sizeof(cmd);
-		CFE_SB_MsgPtr_t CmdMsgPtr;
+		CFE_SB_MsgPtr_t CmdMsgPtr;//
+
 		CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
 		CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
 		CCSDS_WR_VERS(CmdMsgPtr->Hdr, 1);
 		*size = MsgSize;
-		buffer = &cmd;
+		buffer = (char *)&cmd;
 	}
 
 	return 0;
