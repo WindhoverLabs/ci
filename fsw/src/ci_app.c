@@ -870,7 +870,7 @@ boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr, uint32 MsgSize)
 	{
 		/* If no checksum present check the CI_CHECKSUM_REQUIRED
 		 * macro defined in the mission config */
-		if (CI_CHECKSUM_REQUIRED == 0)
+		if (CI_CHECKSUM_REQUIRED == 1)
 		{
 			goto CI_ValidateCmd_Exit_Tag;
 		}
