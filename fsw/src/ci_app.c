@@ -861,7 +861,7 @@ boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr, uint32 MsgSize)
 	cmdPkt = (CCSDS_CmdPkt_t *)MsgPtr;
 	if (CCSDS_RD_CHECKSUM(cmdPkt->SecHdr) != 0)
 	{
-		if (CFE_SB_ValidateChecksum(MsgPtr->Byte) != TRUE)
+		if (CFE_SB_ValidateChecksum(MsgPtr) != TRUE)
 		{
 			goto CI_ValidateCmd_Exit_Tag;
 		}
@@ -869,7 +869,7 @@ boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr, uint32 MsgSize)
 	else
 	{
 		/* If no checksum present check the CI_CHECKSUM_REQUIRED
-		 * macro defined in the platform config */
+		 * macro defined in the mission config */
 		if (CI_CHECKSUM_REQUIRED == 0)
 		{
 			goto CI_ValidateCmd_Exit_Tag;
@@ -1015,12 +1015,6 @@ void CI_ListenerTaskMain(void)
 		do{
 			MsgSize = CI_MAX_CMD_INGEST;
 			CI_ReadMessage(CI_AppData.IngestBuffer, &MsgSize);
-			//OS_printf("Buffer: %i,\n", CI_AppData.IngestBuffer);
-			for (int i = 0; i < MsgSize; i++)
-			{
-				printf("%i ", CI_AppData.IngestBuffer[i]);
-			}
-			OS_printf("\nEnd buffer\n");
 			if(MsgSize > 0)
 			{
 				/* If number of bytes received less than max */
@@ -1034,12 +1028,10 @@ void CI_ListenerTaskMain(void)
 						CmdMsgId = CFE_SB_GetMsgId(CmdMsgPtr);
 						if (CI_CMD_MID == CmdMsgId)
 						{
-							printf("CI cmd \n");
 							CI_ProcessNewAppCmds(CmdMsgPtr);
 						}
 						else
 						{
-							printf("EXT cmd \n");
 							/* Verify cmd is authorized */
 							if (CI_GetCmdAuthorized(CmdMsgPtr) == TRUE)
 							{
@@ -1052,7 +1044,6 @@ void CI_ListenerTaskMain(void)
 					}
 					else
 					{
-						printf("Invalid \n");
 						CI_AppData.HkTlm.usCmdErrCnt++;
 						CFE_EVS_SendEvent (CI_CMD_INVALID_EID, CFE_EVS_ERROR, "Rcvd invalid cmd");
 					}

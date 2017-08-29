@@ -283,7 +283,7 @@ void Test_CI_InitApp_Fail_InitCDSTbl(void)
 
 
 /**
- * Test CI_InitApp(), Nominal TODO: Fix
+ * Test CI_InitApp(), Nominal
  */
 void Test_CI_InitApp_Nominal(void)
 {
@@ -296,7 +296,7 @@ void Test_CI_InitApp_Nominal(void)
     result = CI_InitApp();
 
     /* Verify results */
-    //UtAssert_True (result == expected, "InitApp, nominal");
+    UtAssert_True (result == expected, "InitApp, nominal");
 }
 
 
@@ -379,15 +379,13 @@ void Test_CI_AppMain_InvalidSchMessage(void)
  */
 int32 Test_CI_AppMain_Nominal_SendHK_SendMsgHook(CFE_SB_Msg_t *MsgPtr)
 {
-    /* TODO:  Test the contents of your HK message here. */
-
     hookCalledCount++;
 
     return CFE_SUCCESS;
 }
 
 /**
- * Test CI_AppMain(), Nominal - SendHK TODO: Fix
+ * Test CI_AppMain(), Nominal - SendHK
  */
 void Test_CI_AppMain_Nominal_SendHK(void)
 {
@@ -405,7 +403,7 @@ void Test_CI_AppMain_Nominal_SendHK(void)
     CI_AppMain();
 
     /* Verify results */
-    //UtAssert_True (hookCalledCount == 1, "AppMain_Nominal_SendHK");
+    UtAssert_True (hookCalledCount == 1, "AppMain_Nominal_SendHK");
 
 }
 
@@ -428,7 +426,7 @@ void Test_CI_AppMain_Nominal_Wakeup(void)
 
 
 /**
- * Test CI_AppMain(), ProcessNewData - InvalidMsgID TODO: Fix
+ * Test CI_AppMain(), ProcessNewData - InvalidMsgID
  */
 void Test_CI_AppMain_ProcessNewData_InvalidMsgID(void)
 {
@@ -450,8 +448,8 @@ void Test_CI_AppMain_ProcessNewData_InvalidMsgID(void)
     CI_AppMain();
 
     /* Verify results */
-    UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==3,"Event Count = 3");
-    //UtAssert_EventSent(CI_MSGID_ERR_EID, CFE_EVS_ERROR, "", "Error Event Sent");
+    UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==4,"Event Count = 4");
+    UtAssert_EventSent(CI_MSGID_ERR_EID, CFE_EVS_ERROR, "", "Error Event Sent");
 }
 
 /**
@@ -572,6 +570,7 @@ void Test_CI_ListenerTaskMain_Ext_Cmd_Unauth(void)
 
 	/* Set to cause to fail */
 	READ_MSG_RET = EXT_STEP_2;
+	CI_AppData.IngestBehavior = BHV_PESSIMISTIC;
 
 	/* Execute the function being tested */
 	CI_ListenerTaskMain();
@@ -611,7 +610,7 @@ void Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_2(void)
 	/* Prevent more than one loop */
 	CI_AppData.IngestActive = FALSE;
 
-	/* Set to cause to fail */
+	/* Set to cause to pass */
 	READ_MSG_RET = EXT_STEP_2_AUTH;
 
 	/* Execute the function being tested */
@@ -619,7 +618,6 @@ void Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_2(void)
 
 	/* Verify results */
 	CmdData = CI_GetRegisterdCmd(TEST_MSG_ID, TEST_CC);
-	UtAssert_True(CmdData->state==UNAUTHORIZED,"Cmd unauthorized");
 	UtAssert_True(CI_AppData.HkTlm.IngestMsgCount==1,"Ingest count = 1");
 }
 
@@ -720,7 +718,7 @@ void Test_CI_ValidateCmd_Inv_Len(void)
 }
 
 /**
- * Test CI_ValidateCmd(), Checksum Invalid TODO
+ * Test CI_ValidateCmd(), Checksum Invalid
  */
 void Test_CI_ValidateCmd_Checksum_Invalid(void)
 {
@@ -736,17 +734,19 @@ void Test_CI_ValidateCmd_Checksum_Invalid(void)
 	cmdPkt = (CCSDS_CmdPkt_t *)CmdMsgPtr;
 
 	/* Set to cause to fail */
-	//CCSDS_WR_VERS(CmdMsgPtr->Hdr, 1);
+	uint8 CheckSum = CCSDS_ComputeCheckSum(CmdMsgPtr);
+	CheckSum++;
+	CCSDS_WR_CHECKSUM(cmdPkt->SecHdr, CheckSum);
 
 	/* Execute the function being tested */
 	retCode = CI_ValidateCmd(CmdMsgPtr, MsgSize);
 
 	/* Verify results */
-	//UtAssert_True(retCode==FALSE,"Valid = False");
+	UtAssert_True(retCode==FALSE,"Valid = False");
 }
 
 /**
- * Test CI_ValidateCmd(), Checksum Valid TODO
+ * Test CI_ValidateCmd(), Checksum Valid
  */
 void Test_CI_ValidateCmd_Checksum_Valid(void)
 {
@@ -759,14 +759,14 @@ void Test_CI_ValidateCmd_Checksum_Valid(void)
 	CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
 	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
 
-	/* Set to cause to fail */
-	CCSDS_WR_VERS(CmdMsgPtr->Hdr, 1);
+	/* Set to cause to pass */
+	CCSDS_LoadCheckSum(CmdMsgPtr);
 
 	/* Execute the function being tested */
 	retCode = CI_ValidateCmd(CmdMsgPtr, MsgSize);
 
 	/* Verify results */
-	//UtAssert_True(retCode==TRUE,"Valid = TRUE");
+	UtAssert_True(retCode==TRUE,"Valid = TRUE");
 }
 
 /**
@@ -783,10 +783,6 @@ void Test_CI_ValidateCmd_No_Checksum_Go(void)
 	CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
 	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
 
-	/* Set to cause to fail */
-	#undef CI_CHECKSUM_REQUIRED
-	#define CI_CHECKSUM_REQUIRED 0
-
 	/* Execute the function being tested */
 	retCode = CI_ValidateCmd(CmdMsgPtr, MsgSize);
 
@@ -795,7 +791,9 @@ void Test_CI_ValidateCmd_No_Checksum_Go(void)
 }
 
 /**
- * Test CI_ValidateCmd(), No Checksum and Required TODO
+ * Test CI_ValidateCmd(), No Checksum and Required
+ * NOTE: This will not pass unless macro is changed
+ * in the mission config.
  */
 void Test_CI_ValidateCmd_No_Checksum_NoGo(void)
 {
@@ -807,10 +805,6 @@ void Test_CI_ValidateCmd_No_Checksum_NoGo(void)
 	/* Create CFE_SB_Msg_t */
 	CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
 	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
-
-	/* Set to cause to fail */
-	#undef CI_CHECKSUM_REQUIRED // Fix
-	#define CI_CHECKSUM_REQUIRED 1
 
 	/* Execute the function being tested */
 	retCode = CI_ValidateCmd(CmdMsgPtr, MsgSize);
