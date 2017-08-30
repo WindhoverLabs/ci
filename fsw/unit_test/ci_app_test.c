@@ -1657,8 +1657,85 @@ void Test_CI_ProcessTimeouts_Nominal(void)
 	UtAssert_True(CI_AppData.TimeoutTbl.time[i]==timeout-1,"Timeout decrement");
 }
 
+/**
+ * Test CI_ProcessTimeouts(), Update
+ */
+void Test_CI_ProcessTimeouts_Update(void)
+{
+	CI_CmdAuthData_t 	cmd;
+	CI_CmdAuthData_t 	*cmdPtr;
+	CI_CmdRegData_t 	cmdReg;
+	CI_CmdRegData_t 	*regDataPtr;
+	uint32  			MsgSize = sizeof(cmdReg);
+	uint32 				i = -1;
+	uint32 				timeout = -1;
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 
+	/* Register a new cmd */
+	CFE_SB_InitMsg(&cmdReg, TEST_MSG_ID, MsgSize, TRUE);
+	regDataPtr = ((CI_CmdRegData_t *) &cmdReg);
+	regDataPtr->msgID = TEST_MSG_ID;
+	regDataPtr->step = STEP_2;
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
 
+	/* Authorize the cmd */
+	MsgSize = sizeof(cmd);
+	CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
+	cmdPtr = ((CI_CmdAuthData_t *) &cmd);
+	cmdPtr->msgID = TEST_MSG_ID;
+
+	/* Execute functions required */
+	CI_CmdRegister(CmdMsgPtr);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
+	CI_CmdAuthorize(CmdMsgPtr);
+
+	/* Set the current timeout for the authorized cmd to 1 */
+	i = CI_GetRegisterdCmdIdx(TEST_MSG_ID, TEST_CC);
+	CI_AppData.TimeoutTbl.time[i] = 1;
+
+	/* Execute the function being tested */
+	CI_ProcessTimeouts();
+
+	/* Verify results */
+	UtAssert_True(CI_AppData.TimeoutTbl.time[i]==0,"Timeout decrement");
+	UtAssert_True(CI_GetCmdAuthorized(CmdMsgPtr)==FALSE,"Command deauthorized");
+}
+
+/**
+ * Test CI_ProcessNewAppCmds(), Reset
+ */
+void Test_CI_ProcessNewAppCmds_Reset(void)
+{
+	boolean		  	retCode = FALSE;
+	CI_NoArgCmd_t 	cmd;
+	uint32  		MsgSize = sizeof(cmd);
+	CFE_SB_MsgPtr_t CmdMsgPtr;
+	CCSDS_CmdPkt_t	*cmdPkt = 0;
+
+	/* Create CFE_SB_Msg_t */
+	CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
+	cmdPkt = (CCSDS_CmdPkt_t *)CmdMsgPtr;
+
+	/* Set to cause to reset */
+	CCSDS_WR_FC(cmdPkt->SecHdr, 1);
+
+	/* Updates values */
+	CI_AppData.HkTlm.usCmdCnt = 1;
+	CI_AppData.HkTlm.usCmdErrCnt = 1;
+	CI_AppData.HkTlm.IngestMsgCount = 1;
+	CI_AppData.HkTlm.IngestErrorCount = 1;
+
+	/* Execute the function being tested */
+	CI_ProcessNewAppCmds(CmdMsgPtr);
+
+	/* Verify results */
+	UtAssert_True(CI_AppData.HkTlm.usCmdCnt == 0,"Reset param");
+	UtAssert_True(CI_AppData.HkTlm.usCmdErrCnt == 0,"Reset param");
+	UtAssert_True(CI_AppData.HkTlm.IngestMsgCount == 0,"Reset param");
+	UtAssert_True(CI_AppData.HkTlm.IngestErrorCount == 0,"Reset param");
+	UtAssert_EventSent(CI_CMD_INF_EID, CFE_EVS_INFORMATION, "", "Reset cmd event");
+}
 
 /**************************************************************************
  * Rollup Test Cases
@@ -1793,11 +1870,15 @@ void CI_App_Test_AddTestCases(void)
     UtTest_Add(Test_CI_ListenerTaskMain_Ext_Cmd_Unauth, CI_Test_Setup_InitTbls, CI_Test_TearDown,
 				"Test_CI_ListenerTaskMain_Ext_Cmd_Unath");
     UtTest_Add(Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_1, CI_Test_Setup_InitTbls, CI_Test_TearDown,
-            			"Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_1");
+				"Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_1");
     UtTest_Add(Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_2, CI_Test_Setup_InitTbls, CI_Test_TearDown,
-                			"Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_2");
+				"Test_CI_ListenerTaskMain_Ext_Cmd_Auth_Step_2");
     UtTest_Add(Test_CI_ProcessTimeouts_Nominal, CI_Test_Setup_InitTbls, CI_Test_TearDown,
-                    			"Test_CI_ProcessTimeouts_Nominal");
+				"Test_CI_ProcessTimeouts_Nominal");
+    UtTest_Add(Test_CI_ProcessTimeouts_Update, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+				"Test_CI_ProcessTimeouts_Update");
+    UtTest_Add(Test_CI_ProcessNewAppCmds_Reset, CI_Test_Setup_InitTbls, CI_Test_TearDown,
+				"Test_CI_ProcessNewAppCmds_Reset");
 }
 
 
