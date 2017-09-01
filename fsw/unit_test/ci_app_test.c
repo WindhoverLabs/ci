@@ -577,7 +577,7 @@ void Test_CI_ListenerTaskMain_Ext_Cmd_Unauth(void)
 
 	/* Verify results */
 	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==2,"Event Count = 2");
-	UtAssert_EventSent(CI_CMD_UNAUTHORIZED_EID, CFE_EVS_ERROR, "Cmd not authorized", "Cmd not authorized");
+	UtAssert_EventSent(CI_CMD_UNAUTHORIZED_EID, CFE_EVS_ERROR, "", "Cmd not authorized");
 	UtAssert_True(CI_AppData.HkTlm.IngestErrorCount==1,"CmdErrCnt = 1");
 }
 
@@ -991,7 +991,7 @@ void Test_CI_CmdAuthorize_Not_Reg(void)
 	CI_CmdAuthorize(CmdMsgPtr);
 
 	/* Verify results */
-	UtAssert_EventSent(CI_CMD_AUTH_NOT_REG_EID, CFE_EVS_ERROR, "Cmd not registered", "Cmd not registered");
+	UtAssert_EventSent(CI_CMD_AUTH_NOT_REG_EID, CFE_EVS_ERROR, "", "Cmd not registered");
 	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==1,"Event Count = 1");
 	UtAssert_True(CI_AppData.HkTlm.usCmdErrCnt==1,"CmdErrCnt = 1");
 }
@@ -1027,7 +1027,7 @@ void Test_CI_CmdAuthorize_Not_2_Step(void)
 	CI_CmdAuthorize(CmdMsgPtr);
 
 	/* Verify results */
-	UtAssert_EventSent(CI_CMD_AUTH_INV_MODE_EID, CFE_EVS_ERROR, "Cmd not 2-step", "Cmd not 2-step");
+	UtAssert_EventSent(CI_CMD_AUTH_INV_MODE_EID, CFE_EVS_ERROR, "", "Cmd not 2-step");
 	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==2,"Event Count = 2");
 	UtAssert_True(CI_AppData.HkTlm.usCmdErrCnt==1,"CmdErrCnt = 1");
 }
@@ -1064,8 +1064,8 @@ void Test_CI_CmdAuthorize_Inv_State(void)
 	CI_CmdAuthorize(CmdMsgPtr);
 
 	/* Verify results */
-	UtAssert_EventSent(CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd authorized", "Cmd authorized");
-	UtAssert_EventSent(CI_CMD_AUTH_INV_STATE_EID, CFE_EVS_ERROR, "Cmd already authorized", "Cmd already authorized");
+	UtAssert_EventSent(CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "", "Cmd authorized");
+	UtAssert_EventSent(CI_CMD_AUTH_INV_STATE_EID, CFE_EVS_ERROR, "", "Cmd already authorized");
 	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==3,"Event Count = 3");
 	UtAssert_True(CI_AppData.HkTlm.usCmdErrCnt==1,"CmdErrCnt = 1");
 	UtAssert_True(CI_AppData.HkTlm.usCmdCnt==2,"CmdCnt = 2");
@@ -1102,7 +1102,7 @@ void Test_CI_CmdAuthorize_Nominal(void)
 	CI_CmdAuthorize(CmdMsgPtr);
 
 	/* Verify results */
-	UtAssert_EventSent(CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd authorized", "Cmd authorized");
+	UtAssert_EventSent(CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "", "Cmd authorized");
 	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==2,"Event Count = 2");
 	UtAssert_True(CI_AppData.HkTlm.usCmdCnt==2,"CmdCnt = 2");
 }
@@ -1128,7 +1128,7 @@ void Test_CI_CmdDeauthorize_Not_Reg(void)
 	CI_CmdDeauthorize(CmdMsgPtr);
 
 	/* Verify results */
-	UtAssert_EventSent(CI_CMD_DEAUTH_NOT_REG_EID, CFE_EVS_ERROR, "Cmd not registered", "Cmd not registered");
+	UtAssert_EventSent(CI_CMD_DEAUTH_NOT_REG_EID, CFE_EVS_ERROR, "", "Cmd not registered");
 	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==1,"Event Count = 1");
 	UtAssert_True(CI_AppData.HkTlm.usCmdErrCnt==1,"CmdErrCnt = 1");
 }
@@ -1164,7 +1164,7 @@ void Test_CI_CmdDeauthorize_Not_2_Step(void)
 	CI_CmdDeauthorize(CmdMsgPtr);
 
 	/* Verify results */
-	UtAssert_EventSent(CI_CMD_DEAUTH_INV_MODE_EID, CFE_EVS_ERROR, "Cmd not 2-step", "Cmd not 2-step");
+	UtAssert_EventSent(CI_CMD_DEAUTH_INV_MODE_EID, CFE_EVS_ERROR, "", "Cmd not 2-step");
 	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==2,"Event Count = 2");
 	UtAssert_True(CI_AppData.HkTlm.usCmdCnt==1,"CmdCnt = 1");
 	UtAssert_True(CI_AppData.HkTlm.usCmdErrCnt==1,"CmdErrCnt = 1");
@@ -1201,7 +1201,7 @@ void Test_CI_CmdDeauthorize_Not_Auth(void)
 	CI_CmdDeauthorize(CmdMsgPtr);
 
 	/* Verify results */
-	UtAssert_EventSent(CI_CMD_DEAUTH_INV_STATE_EID, CFE_EVS_ERROR, "Cmd not authorized", "Cmd not authorized");
+	UtAssert_EventSent(CI_CMD_DEAUTH_INV_STATE_EID, CFE_EVS_ERROR, "", "Cmd not authorized");
 	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==2,"Event Count = 2");
 	UtAssert_True(CI_AppData.HkTlm.usCmdCnt==1,"CmdCnt = 1");
 	UtAssert_True(CI_AppData.HkTlm.usCmdErrCnt==1,"CmdErrCnt = 1");
@@ -1239,8 +1239,8 @@ void Test_CI_CmdDeauthorize_Nominal(void)
 	CI_CmdDeauthorize(CmdMsgPtr);
 
 	/* Verify results */
-	UtAssert_EventSent(CI_CMD_DEAUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd deauthorized", "Cmd deauthorized");
-	UtAssert_EventSent(CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd authorized", "Cmd authorized");
+	UtAssert_EventSent(CI_CMD_DEAUTHORIZED_EID, CFE_EVS_INFORMATION, "", "Cmd deauthorized");
+	UtAssert_EventSent(CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "", "Cmd authorized");
 	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==3,"Event Count = 3");
 	UtAssert_True(CI_AppData.HkTlm.usCmdCnt==3,"CmdCnt = 3");
 	UtAssert_True(CI_AppData.HkTlm.usCmdErrCnt==0,"CmdErrCnt = 0");
@@ -1292,8 +1292,8 @@ void Test_CI_CmdRegister_Reg_Exists(void)
 	CI_CmdRegister(CmdMsgPtr);
 
 	/* Verify results */
-	UtAssert_EventSent(CI_CMD_ALREADY_REGISTERED_EID, CFE_EVS_ERROR, "Cmd already registered", "Cmd already registered");
-	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "Cmd registered", "Cmd registered");
+	UtAssert_EventSent(CI_CMD_ALREADY_REGISTERED_EID, CFE_EVS_ERROR, "", "Cmd already registered");
+	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "", "Cmd registered");
 	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==2,"Event Count = 2");
 	UtAssert_True(CI_AppData.HkTlm.usCmdErrCnt==1,"CmdErrCnt = 1");
 	UtAssert_True(CI_AppData.HkTlm.usCmdCnt==1,"CmdCnt = 1");
@@ -1351,7 +1351,7 @@ void Test_CI_CmdRegister_Nominal(void)
 	CI_CmdRegister(CmdMsgPtr);
 
 	/* Verify results */
-	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "Cmd registered", "Cmd registered");
+	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "", "Cmd registered");
 	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==1,"Event Count = 1");
 	UtAssert_True(CI_AppData.HkTlm.usCmdCnt==1,"CmdCnt = 1");
 }
@@ -1403,7 +1403,7 @@ void Test_CI_CmdDeregister_Not_Reg(void)
 	CI_CmdDeregister(CmdMsgPtr);
 
 	/* Verify results */
-	UtAssert_EventSent(CI_CMD_NOT_REGISTERED_EID, CFE_EVS_ERROR, "Cmd not registered", "Cmd not registered");
+	UtAssert_EventSent(CI_CMD_NOT_REGISTERED_EID, CFE_EVS_ERROR, "", "Cmd not registered");
 	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==1,"Event Count = 1");
 	UtAssert_True(CI_AppData.HkTlm.usCmdErrCnt==1,"CmdErrCnt = 1");
 }
@@ -1437,8 +1437,8 @@ void Test_CI_CmdDeregister_Nominal(void)
 	CI_CmdDeregister(CmdMsgPtr);
 
 	/* Verify results */
-	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "Cmd registered", "Cmd registered");
-	UtAssert_EventSent(CI_CMD_DEREGISTERED_EID, CFE_EVS_INFORMATION, "Cmd deregistered", "Cmd deregistered");
+	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "", "Cmd registered");
+	UtAssert_EventSent(CI_CMD_DEREGISTERED_EID, CFE_EVS_INFORMATION, "", "Cmd deregistered");
 	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==2,"Event Count = 2");
 	UtAssert_True(CI_AppData.HkTlm.usCmdCnt==2,"CmdCnt = 2");
 }
@@ -1488,7 +1488,7 @@ void Test_CI_UpdateCmdReg_Not_Reg(void)
 	CI_UpdateCmdReg(CmdMsgPtr);
 
 	/* Verify results */
-	UtAssert_EventSent(CI_CMD_NOT_REGISTERED_EID, CFE_EVS_ERROR, "Cmd not registered", "Cmd not registered");
+	UtAssert_EventSent(CI_CMD_NOT_REGISTERED_EID, CFE_EVS_ERROR, "", "Cmd not registered");
 	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==1,"Event Count = 1");
 	UtAssert_True(CI_AppData.HkTlm.usCmdErrCnt==1,"CmdErrCnt = 1");
 }
@@ -1526,8 +1526,8 @@ void Test_CI_UpdateCmdReg_2_Step_Nominal(void)
 
 	/* Verify results */
 	CmdData = CI_GetRegisterdCmd(TEST_MSG_ID, TEST_CC);
-	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "Cmd registered", "Cmd registered");
-	UtAssert_EventSent(CI_CMD_UPDATE_REG_EID, CFE_EVS_INFORMATION, "Cmd updated", "Cmd updated");
+	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "", "Cmd registered");
+	UtAssert_EventSent(CI_CMD_UPDATE_REG_EID, CFE_EVS_INFORMATION, "", "Cmd updated");
 	UtAssert_True(CI_AppData.HkTlm.usCmdCnt==2,"CmdCnt = 2");
 	UtAssert_True(CmdData->mid==TEST_MSG_ID,"Correct data row");
 	UtAssert_True(CmdData->step==STEP_1,"Successfully updated cmd stepping");
@@ -1568,9 +1568,9 @@ void Test_CI_UpdateCmdReg_2_Step_Auth(void)
 	CI_UpdateCmdReg(CmdMsgPtr);
 
 	/* Verify results */
-	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "Cmd registered", "Cmd registered");
-	UtAssert_EventSent(CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd authorized", "Cmd authorized");
-	UtAssert_EventSent(CI_CMD_UPDT_REG_INVLD_STATE_EID, CFE_EVS_ERROR, "Invalid state of command to update", "Invalid state of command to update");
+	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "", "Cmd registered");
+	UtAssert_EventSent(CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "", "Cmd authorized");
+	UtAssert_EventSent(CI_CMD_UPDT_REG_INVLD_STATE_EID, CFE_EVS_ERROR, "", "Invalid state of command to update");
 	UtAssert_True(CI_AppData.HkTlm.usCmdCnt==2,"CmdCnt = 2");
 	UtAssert_True(CI_AppData.HkTlm.usCmdErrCnt==1,"CmdErrCnt = 1");
 }
@@ -1607,8 +1607,8 @@ void Test_CI_UpdateCmdReg_1_Step_Nominal(void)
 
 	/* Verify results */
 	CmdData = CI_GetRegisterdCmd(TEST_MSG_ID, TEST_CC);
-	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "Cmd registered", "Cmd registered");
-	UtAssert_EventSent(CI_CMD_UPDATE_REG_EID, CFE_EVS_INFORMATION, "Cmd updated", "Cmd updated");
+	UtAssert_EventSent(CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "", "Cmd registered");
+	UtAssert_EventSent(CI_CMD_UPDATE_REG_EID, CFE_EVS_INFORMATION, "", "Cmd updated");
 	UtAssert_True(CI_AppData.HkTlm.usCmdCnt==2,"CmdCnt = 2");
 	UtAssert_True(CmdData->mid==TEST_MSG_ID,"Correct data row");
 	UtAssert_True(CmdData->step==STEP_2,"Successfully updated cmd stepping");

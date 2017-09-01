@@ -452,7 +452,8 @@ void CI_CmdAuthorize(CFE_SB_Msg_t* MsgPtr)
 		CmdData = CI_GetRegisterdCmd(authDataPtr->msgID, authDataPtr->cmdCode);
 		if (CmdData == NULL)
 		{
-			CFE_EVS_SendEvent (CI_CMD_AUTH_NOT_REG_EID, CFE_EVS_ERROR, "Cmd not registered");
+			CFE_EVS_SendEvent (CI_CMD_AUTH_NOT_REG_EID, CFE_EVS_ERROR, "Cmd (%i) not registered for msgId (0x%04X)",
+								authDataPtr->cmdCode, (unsigned short)authDataPtr->msgID);
 			CI_AppData.HkTlm.usCmdErrCnt++;
 			return;
 		}
@@ -460,7 +461,8 @@ void CI_CmdAuthorize(CFE_SB_Msg_t* MsgPtr)
 		/* Check if command is not 2-step */
 		if (CmdData->step != STEP_2)
 		{
-			CFE_EVS_SendEvent (CI_CMD_AUTH_INV_MODE_EID, CFE_EVS_ERROR, "Cmd not 2-step");
+			CFE_EVS_SendEvent (CI_CMD_AUTH_INV_MODE_EID, CFE_EVS_ERROR, "Cmd (%i) for msgId (0x%04X) not 2-step",
+								authDataPtr->cmdCode, (unsigned short)authDataPtr->msgID);
 			CI_AppData.HkTlm.usCmdErrCnt++;
 			return;
 		}
@@ -468,7 +470,8 @@ void CI_CmdAuthorize(CFE_SB_Msg_t* MsgPtr)
 		/* Check if command is already authorized */
 		if (CmdData->state == AUTHORIZED)
 		{
-			CFE_EVS_SendEvent (CI_CMD_AUTH_INV_STATE_EID, CFE_EVS_ERROR, "Cmd already authorized");
+			CFE_EVS_SendEvent (CI_CMD_AUTH_INV_STATE_EID, CFE_EVS_ERROR, "Cmd (%i) already authorized for msgId (0x%04X)",
+								authDataPtr->cmdCode, (unsigned short)authDataPtr->msgID);
 			CI_AppData.HkTlm.usCmdErrCnt++;
 			return;
 		}
@@ -487,7 +490,8 @@ void CI_CmdAuthorize(CFE_SB_Msg_t* MsgPtr)
 		OS_MutSemGive(CI_AppData.ConfigTblMutex);
 		OS_MutSemGive(CI_AppData.TimeoutTblMutex);
 
-		CFE_EVS_SendEvent (CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd authorized");
+		CFE_EVS_SendEvent (CI_CMD_AUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd (%i) authorized for msgId (0x%04X)",
+							authDataPtr->cmdCode, (unsigned short)authDataPtr->msgID);
 		CI_AppData.HkTlm.usCmdCnt++;
 	}
 
@@ -515,7 +519,8 @@ void CI_CmdDeauthorize(CFE_SB_Msg_t* MsgPtr)
 		CmdData = CI_GetRegisterdCmd(authDataPtr->msgID, authDataPtr->cmdCode);
 		if (CmdData == NULL)
 		{
-			CFE_EVS_SendEvent (CI_CMD_DEAUTH_NOT_REG_EID, CFE_EVS_ERROR, "Cmd not registered");
+			CFE_EVS_SendEvent (CI_CMD_DEAUTH_NOT_REG_EID, CFE_EVS_ERROR, "Cmd (%i) not registered for msgId (0x%04X)",
+								authDataPtr->cmdCode, (unsigned short)authDataPtr->msgID);
 			CI_AppData.HkTlm.usCmdErrCnt++;
 			return;
 		}
@@ -523,7 +528,8 @@ void CI_CmdDeauthorize(CFE_SB_Msg_t* MsgPtr)
 		/* Check if command is not 2-step */
 		if (CmdData->step != STEP_2)
 		{
-			CFE_EVS_SendEvent (CI_CMD_DEAUTH_INV_MODE_EID, CFE_EVS_ERROR, "Cmd not 2-step");
+			CFE_EVS_SendEvent (CI_CMD_DEAUTH_INV_MODE_EID, CFE_EVS_ERROR, "Cmd (%i) for msgId (0x%04X) not 2-step",
+								authDataPtr->cmdCode, (unsigned short)authDataPtr->msgID);
 			CI_AppData.HkTlm.usCmdErrCnt++;
 			return;
 		}
@@ -531,7 +537,8 @@ void CI_CmdDeauthorize(CFE_SB_Msg_t* MsgPtr)
 		/* Check if command is already unauthorized */
 		if (CmdData->state == UNAUTHORIZED)
 		{
-			CFE_EVS_SendEvent (CI_CMD_DEAUTH_INV_STATE_EID, CFE_EVS_ERROR, "Cmd not authorized");
+			CFE_EVS_SendEvent (CI_CMD_DEAUTH_INV_STATE_EID, CFE_EVS_ERROR, "Cmd (%i) for msgId (0x%04X) not authorized",
+								authDataPtr->cmdCode, (unsigned short)authDataPtr->msgID);
 			CI_AppData.HkTlm.usCmdErrCnt++;
 			return;
 		}
@@ -550,7 +557,8 @@ void CI_CmdDeauthorize(CFE_SB_Msg_t* MsgPtr)
 		OS_MutSemGive(CI_AppData.ConfigTblMutex);
 		OS_MutSemGive(CI_AppData.TimeoutTblMutex);
 
-		CFE_EVS_SendEvent (CI_CMD_DEAUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd deauthorized");
+		CFE_EVS_SendEvent (CI_CMD_DEAUTHORIZED_EID, CFE_EVS_INFORMATION, "Cmd (%i) deauthorized for msgId (0x%04X)",
+							authDataPtr->cmdCode, (unsigned short)authDataPtr->msgID);
 		CI_AppData.HkTlm.usCmdCnt++;
 	}
 
@@ -613,12 +621,14 @@ void CI_CmdRegister(CFE_SB_Msg_t* MsgPtr)
 					/* Unlock the timeout mutex */
 					OS_MutSemGive(CI_AppData.TimeoutTblMutex);
 
-					CFE_EVS_SendEvent (CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "Cmd registered");
+					CFE_EVS_SendEvent (CI_CMD_REGISTERED_EID, CFE_EVS_INFORMATION, "Cmd (%i) registered for msgId (0x%04X)",
+										regDataPtr->cmdCode, (unsigned short)regDataPtr->msgID);
 					CI_AppData.HkTlm.usCmdCnt++;
 				}
 				else
 				{
-					CFE_EVS_SendEvent (CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to register cmd");
+					CFE_EVS_SendEvent (CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to register cmd (%i) for msgId (0x%04X)",
+										regDataPtr->cmdCode, (unsigned short)regDataPtr->msgID);
 					CI_AppData.HkTlm.usCmdErrCnt++;
 				}
 
@@ -627,13 +637,15 @@ void CI_CmdRegister(CFE_SB_Msg_t* MsgPtr)
 			}
 			else
 			{
-				CFE_EVS_SendEvent (CI_CMD_ALREADY_REGISTERED_EID, CFE_EVS_ERROR, "Cmd already registered");
+				CFE_EVS_SendEvent (CI_CMD_ALREADY_REGISTERED_EID, CFE_EVS_ERROR, "Cmd (%i) already registered for msgId (0x%04X)",
+									regDataPtr->cmdCode, (unsigned short)regDataPtr->msgID);
 				CI_AppData.HkTlm.usCmdErrCnt++;
 			}
 		}
 		else
 		{
-			CFE_EVS_SendEvent (CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to register cmd");
+			CFE_EVS_SendEvent (CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to register cmd (%i) for msgId (0x%04X)",
+								regDataPtr->cmdCode, (unsigned short)regDataPtr->msgID);
 			CI_AppData.HkTlm.usCmdErrCnt++;
 		}
 	}
@@ -683,19 +695,21 @@ void CI_CmdDeregister(CFE_SB_Msg_t* MsgPtr)
 				/* Unlock the mutex */
 				OS_MutSemGive(CI_AppData.ConfigTblMutex);
 				OS_MutSemGive(CI_AppData.TimeoutTblMutex);
-
-				CFE_EVS_SendEvent (CI_CMD_DEREGISTERED_EID, CFE_EVS_INFORMATION, "Cmd deregistered");
+				CFE_EVS_SendEvent (CI_CMD_DEREGISTERED_EID, CFE_EVS_INFORMATION, "Cmd (%i) deregistered for msgId (0x%04X)",
+									regDataPtr->cmdCode, (unsigned short)regDataPtr->msgID);
 				CI_AppData.HkTlm.usCmdCnt++;
 			}
 			else
 			{
-				CFE_EVS_SendEvent (CI_CMD_NOT_REGISTERED_EID, CFE_EVS_ERROR, "Cmd not registered");
+				CFE_EVS_SendEvent (CI_CMD_NOT_REGISTERED_EID, CFE_EVS_ERROR, "Cmd (%i) not registered for msgId (0x%04X)",
+									regDataPtr->cmdCode, (unsigned short)regDataPtr->msgID);
 				CI_AppData.HkTlm.usCmdErrCnt++;
 			}
 		}
 		else
 		{
-			CFE_EVS_SendEvent (CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to deregister cmd");
+			CFE_EVS_SendEvent (CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to deregister cmd (%i) for msgId (0x%04X)",
+								regDataPtr->cmdCode, (unsigned short)regDataPtr->msgID);
 			CI_AppData.HkTlm.usCmdErrCnt++;
 		}
 	}
@@ -733,7 +747,8 @@ void CI_UpdateCmdReg(CFE_SB_Msg_t* MsgPtr)
 					{
 						CFE_EVS_SendEvent (CI_CMD_UPDT_REG_INVLD_STATE_EID,
 											CFE_EVS_ERROR,
-											"Invalid state of command to update");
+											"Invalid state of cmd (%i) for msgId (0x%04X) to update",
+											regDataPtr->cmdCode, (unsigned short)regDataPtr->msgID);
 						CI_AppData.HkTlm.usCmdErrCnt++;
 						goto CI_UpdateCmdReg_Exit_Tag;
 					}
@@ -758,18 +773,21 @@ void CI_UpdateCmdReg(CFE_SB_Msg_t* MsgPtr)
 				OS_MutSemGive(CI_AppData.ConfigTblMutex);
 				OS_MutSemGive(CI_AppData.TimeoutTblMutex);
 
-				CFE_EVS_SendEvent (CI_CMD_UPDATE_REG_EID, CFE_EVS_INFORMATION, "Cmd updated");
+				CFE_EVS_SendEvent (CI_CMD_UPDATE_REG_EID, CFE_EVS_INFORMATION, "Cmd (%i) for msgId (0x%04X) updated",
+									regDataPtr->cmdCode, (unsigned short)regDataPtr->msgID);
 				CI_AppData.HkTlm.usCmdCnt++;
 			}
 			else
 			{
-				CFE_EVS_SendEvent (CI_CMD_NOT_REGISTERED_EID, CFE_EVS_ERROR, "Cmd not registered");
+				CFE_EVS_SendEvent (CI_CMD_NOT_REGISTERED_EID, CFE_EVS_ERROR, "Cmd (%i) not registered for msgId (0x%04X)",
+									regDataPtr->cmdCode, (unsigned short)regDataPtr->msgID);
 				CI_AppData.HkTlm.usCmdErrCnt++;
 			}
 		}
 		else
 		{
-			CFE_EVS_SendEvent (CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to update cmd");
+			CFE_EVS_SendEvent (CI_CMD_REG_ERR_EID, CFE_EVS_ERROR, "Unable to update cmd (%i) for msgId (0x%04X)",
+								regDataPtr->cmdCode, (unsigned short)regDataPtr->msgID);
 			CI_AppData.HkTlm.usCmdErrCnt++;
 		}
 	}
@@ -786,7 +804,8 @@ CI_UpdateCmdReg_Exit_Tag:
 
 void CI_ProcessTimeouts(void)
 {
-	uint32 		i = 0;
+	uint32 			i = 0;
+	CI_CmdData_t	*CmdData = NULL;
 
 	/* Lock the timeout table mutex */
 	OS_MutSemTake(CI_AppData.TimeoutTblMutex);
@@ -803,13 +822,14 @@ void CI_ProcessTimeouts(void)
 				OS_MutSemTake(CI_AppData.ConfigTblMutex);
 
 				CI_AppData.ConfigTblPtr->cmds[i].state = UNAUTHORIZED;
+				CFE_EVS_SendEvent (CI_CMD_AUTH_TIMEOUT_EID,
+								   CFE_EVS_INFORMATION,
+								   "Cmd (%i) for msgId (0x%04X) authorization timeout",
+								   CI_AppData.ConfigTblPtr->cmds[i].code,
+								   CI_AppData.ConfigTblPtr->cmds[i].mid);
 
 				/* Unlock the config table mutex */
 				OS_MutSemGive(CI_AppData.ConfigTblMutex);
-
-				CFE_EVS_SendEvent (CI_CMD_AUTH_TIMEOUT_EID,
-								   CFE_EVS_INFORMATION,
-								   "Cmd authorization timeout");
 			}
 		}
 	}
@@ -943,9 +963,8 @@ CI_GetCmdAuthorized_Exit_tag:
 	if (bResult == FALSE)
 	{
 		CI_AppData.HkTlm.IngestErrorCount++;
-		CFE_EVS_SendEvent (CI_CMD_UNAUTHORIZED_EID, CFE_EVS_ERROR, "Cmd not authorized");
+		CFE_EVS_SendEvent (CI_CMD_UNAUTHORIZED_EID, CFE_EVS_ERROR, "Cmd (%i) not authorized for msgId (0x%04X)", cmdCode, msgID);
 	}
-
 	return bResult;
 }
 
@@ -1045,7 +1064,8 @@ void CI_ListenerTaskMain(void)
 					else
 					{
 						CI_AppData.HkTlm.usCmdErrCnt++;
-						CFE_EVS_SendEvent (CI_CMD_INVALID_EID, CFE_EVS_ERROR, "Rcvd invalid cmd");
+						CFE_EVS_SendEvent (CI_CMD_INVALID_EID, CFE_EVS_ERROR, "Rcvd invalid cmd (%i) for msgId (0x%04X)",
+											CFE_SB_GetCmdCode(CmdMsgPtr), CmdMsgId);
 					}
 				}
 				else
