@@ -970,6 +970,33 @@ CI_GetCmdAuthorized_Exit_tag:
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
+/* Deserialize Message                                    		   */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+CFE_SB_MsgPtr_t CI_DeserializeMsg(uint8 buffer)
+{
+	CFE_SB_MsgPtr_t		MsgPtr = NULL;
+	void 				(*decodeFunc)() = NULL;//todo fix
+
+	/* Get deserialization funciton from PBL */
+	//decodeFunc =
+
+	if(decodeFunc == NULL)
+	{
+		//not registered
+		//send event
+		goto CI_DeserializeMsg_Exit_Tag;
+	}
+	//
+	//MsgPtr = (CFE_SB_MsgPtr_t)(*decodeFunc)(); //todo
+
+CI_DeserializeMsg_Exit_Tag:
+	return MsgPtr;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
 /* Spawn Child Task				                                   */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1034,48 +1061,57 @@ void CI_ListenerTaskMain(void)
 		do{
 			MsgSize = CI_MAX_CMD_INGEST;
 			CI_ReadMessage(CI_AppData.IngestBuffer, &MsgSize);
-			if(MsgSize > 0)
+
+			CmdMsgPtr = CI_DeserializeMsg(CI_AppData.IngestBuffer);
+			if(CmdMsgPtr != NULL)
 			{
-				/* If number of bytes received less than max */
-				if (MsgSize <= CI_MAX_CMD_INGEST)
+				if(MsgSize > 0)
 				{
-					/* Verify validity of cmd */
-					CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
-					if (CI_ValidateCmd(CmdMsgPtr, MsgSize) == TRUE)
+					/* If number of bytes received less than max */
+					if (MsgSize <= CI_MAX_CMD_INGEST)
 					{
-						/* Check if cmd is for CI and route if so */
-						CmdMsgId = CFE_SB_GetMsgId(CmdMsgPtr);
-						if (CI_CMD_MID == CmdMsgId)
+						/* Verify validity of cmd */
+						//CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
+						if (CI_ValidateCmd(CmdMsgPtr, MsgSize) == TRUE)
 						{
-							CI_ProcessNewAppCmds(CmdMsgPtr);
+							/* Check if cmd is for CI and route if so */
+							CmdMsgId = CFE_SB_GetMsgId(CmdMsgPtr);
+							if (CI_CMD_MID == CmdMsgId)
+							{
+								CI_ProcessNewAppCmds(CmdMsgPtr);
+							}
+							else
+							{
+								/* Verify cmd is authorized */
+								if (CI_GetCmdAuthorized(CmdMsgPtr) == TRUE)
+								{
+									CFE_ES_PerfLogEntry(CI_SOCKET_RCV_PERF_ID); // need?
+									CI_AppData.HkTlm.IngestMsgCount++;
+									CFE_SB_SendMsg(CmdMsgPtr);
+									CFE_ES_PerfLogExit(CI_SOCKET_RCV_PERF_ID);
+								}
+							}
 						}
 						else
 						{
-							/* Verify cmd is authorized */
-							if (CI_GetCmdAuthorized(CmdMsgPtr) == TRUE)
-							{
-								CFE_ES_PerfLogEntry(CI_SOCKET_RCV_PERF_ID); // need?
-								CI_AppData.HkTlm.IngestMsgCount++;
-								CFE_SB_SendMsg(CmdMsgPtr);
-								CFE_ES_PerfLogExit(CI_SOCKET_RCV_PERF_ID);
-							}
+							CI_AppData.HkTlm.usCmdErrCnt++;
+							CFE_EVS_SendEvent (CI_CMD_INVALID_EID, CFE_EVS_ERROR, "Rcvd invalid cmd (%i) for msgId (0x%04X)",
+												CFE_SB_GetCmdCode(CmdMsgPtr), CmdMsgId);
 						}
 					}
 					else
 					{
-						CI_AppData.HkTlm.usCmdErrCnt++;
-						CFE_EVS_SendEvent (CI_CMD_INVALID_EID, CFE_EVS_ERROR, "Rcvd invalid cmd (%i) for msgId (0x%04X)",
-											CFE_SB_GetCmdCode(CmdMsgPtr), CmdMsgId);
+						CI_AppData.HkTlm.IngestErrorCount++;
+						CFE_EVS_SendEvent(CI_CMD_INGEST_ERR_EID, CFE_EVS_ERROR,
+										  "L%d, cmd %0x %0x dropped, too long",
+										  __LINE__, *(long *)CI_AppData.IngestBuffer,
+										  *(long *)(CI_AppData.IngestBuffer + 4) );
 					}
 				}
-				else
-				{
-					CI_AppData.HkTlm.IngestErrorCount++;
-					CFE_EVS_SendEvent(CI_CMD_INGEST_ERR_EID, CFE_EVS_ERROR,
-									  "L%d, cmd %0x %0x dropped, too long",
-									  __LINE__, *(long *)CI_AppData.IngestBuffer,
-									  *(long *)(CI_AppData.IngestBuffer + 4) );
-				}
+			}
+			else
+			{
+				//OS_printf("Deserialized is null\n");
 			}
 			OS_TaskDelay(100); // TODO: Verify required
 		}while(CI_AppData.IngestActive == TRUE);
