@@ -1062,7 +1062,11 @@ void CI_ListenerTaskMain(void)
 			MsgSize = CI_MAX_CMD_INGEST;
 			CI_ReadMessage(CI_AppData.IngestBuffer, &MsgSize);
 
-			CmdMsgPtr = CI_DeserializeMsg(CI_AppData.IngestBuffer);
+#ifdef CI_SERIALIZED
+			//CmdMsgPtr = CI_DeserializeMsg(CI_AppData.IngestBuffer);
+#else
+			CmdMsgPtr = CI_AppData.IngestBuffer;
+#endif
 			if(CmdMsgPtr != NULL)
 			{
 				if(MsgSize > 0)
