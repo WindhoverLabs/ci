@@ -17,6 +17,7 @@
 #include "ci_version.h"
 
 
+
 /************************************************************************
 ** Local Defines
 *************************************************************************/
@@ -974,25 +975,49 @@ CI_GetCmdAuthorized_Exit_tag:
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-CFE_SB_MsgPtr_t CI_DeserializeMsg(uint8 buffer)
+CFE_SB_MsgPtr_t CI_DeserializeMsg(uint8 buffer[])
 {
 	CFE_SB_MsgPtr_t		MsgPtr = NULL;
-	void 				(*decodeFunc)() = NULL;//todo fix
+	CFE_SB_MsgPtr_t 	CmdMsgPtr;
+	CFE_SB_MsgId_t  	msgId = 0;
+	uint32  			msgSize = 0;
+	uint16 				cmdCode = 0;
+	uint32  			payloadSize = 0;
+	uint32  			hdrSize = 0;
+	uint32 				(*decodeFunc)(char *, uint32, const void *) = 0;
+	void				*rtnMsg;
+
+	OS_printf("Enter serialize\n");
+
+	// Get data
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)buffer;
+	msgId = CFE_SB_GetMsgId(CmdMsgPtr);
+	msgSize = CFE_SB_GetTotalMsgLength(CmdMsgPtr);
+	hdrSize = CFE_SB_MsgHdrSize(msgId);
+	cmdCode = CFE_SB_GetCmdCode(CmdMsgPtr);
+	OS_printf("MID: %i\n", msgId);
+	OS_printf("cmdCode: %i\n", cmdCode);
 
 	/* Get deserialization funciton from PBL */
-	//decodeFunc =
+	decodeFunc = PBLIB_GetDeserializationFunc(msgId, cmdCode);
 
-	if(decodeFunc == NULL)
+	if(decodeFunc == 0)
 	{
+		OS_printf("No deserialization func\n");
 		//not registered
 		//send event
 		goto CI_DeserializeMsg_Exit_Tag;
 	}
+
 	//
-	//MsgPtr = (CFE_SB_MsgPtr_t)(*decodeFunc)(); //todo
+	//payloadSize = decodeFunc(CmdMsgPtr, msgSize, rtnMsg);
+
+	//CFE_SB_InitMsg(&rtnMsg, msgId, payloadSize, TRUE);
+	//CFE_SB_SetUserData(CmdMsgPtr, rtnMsg);
 
 CI_DeserializeMsg_Exit_Tag:
-	return MsgPtr;
+	OS_printf("Exit serialize\n");
+	return rtnMsg;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -1054,6 +1079,8 @@ void CI_ListenerTaskMain(void)
     CFE_SB_MsgPtr_t CmdMsgPtr;
     CFE_SB_MsgId_t  CmdMsgId;
 
+    PBLIB_RegisterMessage(7209, 2, "EA_StartCmd_t");
+
 	Status = CFE_ES_RegisterChildTask();
 	if (Status == CFE_SUCCESS)
 	{
@@ -1063,7 +1090,7 @@ void CI_ListenerTaskMain(void)
 			CI_ReadMessage(CI_AppData.IngestBuffer, &MsgSize);
 
 #ifdef CI_SERIALIZED
-			//CmdMsgPtr = CI_DeserializeMsg(CI_AppData.IngestBuffer);
+			CmdMsgPtr = CI_DeserializeMsg(CI_AppData.IngestBuffer);
 #else
 			CmdMsgPtr = CI_AppData.IngestBuffer;
 #endif

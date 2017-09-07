@@ -10,6 +10,7 @@
 ** Includes
 *************************************************************************/
 #include "cfe.h"
+#include "pb_lib.h"
 
 #include "ci_platform_cfg.h"
 #include "ci_mission_cfg.h"
@@ -580,6 +581,9 @@ void CI_CmdDeregister(CFE_SB_Msg_t* MsgPtr);
 **
 *************************************************************************/
 void CI_UpdateCmdReg(CFE_SB_Msg_t* MsgPtr);
+
+// TODO
+CFE_SB_MsgPtr_t CI_DeserializeMsg(uint8 buffer[]);
 
 #ifdef __cplusplus
 }
