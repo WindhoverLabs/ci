@@ -1044,7 +1044,7 @@ CI_DeserializeMsg_Exit_Tag:
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 // TODO: THIS DOESN'T BELONG HERE FIXME
-CFE_SB_MsgPtr_t CI_SerializeMsg(uint8 buffer[])
+CFE_SB_MsgPtr_t TO_SerializeMsg(uint8 buffer[])
 {
 	CFE_SB_MsgPtr_t 	CmdMsgPtr;
 	CFE_SB_MsgId_t  	msgId = 0;
@@ -1066,9 +1066,9 @@ CFE_SB_MsgPtr_t CI_SerializeMsg(uint8 buffer[])
 	if(encodeFunc == 0)
 	{
 		// TODO: Update event to TO when moving
-		CFE_EVS_SendEvent (CI_NO_DECODE_FUNC_EID, CFE_EVS_ERROR, "MsgId (0x%04X) cmd (%i) has no deserialization function",
+		CFE_EVS_SendEvent (CI_NO_DECODE_FUNC_EID, CFE_EVS_ERROR, "MsgId (0x%04X) cmd (%i) has no serialization function",
 									msgId, cmdCode);
-		goto CI_SerializeMsg_Exit_Tag;
+		goto TO_SerializeMsg_Exit_Tag;
 	}
 	//OS_printf("FuncAddr: %02x\n", encodeFunc);
 
@@ -1085,7 +1085,7 @@ CFE_SB_MsgPtr_t CI_SerializeMsg(uint8 buffer[])
 	cmdPkt = (CCSDS_CmdPkt_t *)CmdMsgPtr;
 	CCSDS_WR_FC(cmdPkt->SecHdr, cmdCode);
 
-CI_SerializeMsg_Exit_Tag:
+TO_SerializeMsg_Exit_Tag:
 	return CmdMsgPtr;
 }
 
@@ -1160,7 +1160,7 @@ void CI_ListenerTaskMain(void)
 			CI_ReadMessage(CI_AppData.IngestBuffer, &MsgSize);
 
 #ifdef	CI_DEBUG_SERIALIZED
-			CmdMsgPtr = CI_SerializeMsg(CI_AppData.IngestBuffer);
+			CmdMsgPtr = TO_SerializeMsg(CI_AppData.IngestBuffer);
 			CI_ValidateCmd(CmdMsgPtr, MsgSize);
 #endif
 
