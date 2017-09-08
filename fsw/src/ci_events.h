@@ -485,6 +485,19 @@ typedef enum {
 */
 	CI_CMD_UPDATE_REG_EID,
 
+/** \brief <tt> 'CI - Unable to find deserialization function' </tt>
+**  \event <tt> 'CI - Unable to find deserialization function' </tt>
+**
+**  \par Type: ERROR
+**
+**  \par Cause:
+**
+**  This event message is issued when CI receives a message
+**  that requires deserialization and it is unable to locate
+**  that message's decoding function
+*/
+	CI_NO_DECODE_FUNC_EID,
+
 /** \brief <tt> This is a count of all the app events and should not be used. </tt> */
     CI_EVT_CNT
 } CI_EventIds_t;
