@@ -583,7 +583,7 @@ void CI_CmdDeregister(CFE_SB_Msg_t* MsgPtr);
 void CI_UpdateCmdReg(CFE_SB_Msg_t* MsgPtr);
 
 // TODO
-CFE_SB_MsgPtr_t CI_DeserializeMsg(CFE_SB_MsgPtr_t CmdMsgPtr);
+uint32 CI_DeserializeMsg(CFE_SB_MsgPtr_t CmdMsgPtr);
 
 #ifdef __cplusplus
 }
