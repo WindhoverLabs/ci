@@ -582,7 +582,24 @@ void CI_CmdDeregister(CFE_SB_Msg_t* MsgPtr);
 *************************************************************************/
 void CI_UpdateCmdReg(CFE_SB_Msg_t* MsgPtr);
 
-// TODO
+/************************************************************************/
+/** \brief Deserialize Message
+**
+**  \par Description
+**       This function receives a SB message pointer that has a payload
+**       serialized with protobuf and deserializes that payload to return
+**       a valid message pointer CFS can understand.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \param [in]   MsgPtr        A #CFE_SB_Msg_t pointer that
+**                              references the software bus message
+**
+**  \returns
+**  #uint32 The size of the new #CFE_SB_Msg_t
+**  \endreturns
+*************************************************************************/
 uint32 CI_DeserializeMsg(CFE_SB_MsgPtr_t CmdMsgPtr);
 
 #ifdef __cplusplus
