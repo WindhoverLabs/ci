@@ -1154,58 +1154,51 @@ void CI_ListenerTaskMain(void)
 
 #ifdef CI_SERIALIZED
 			MsgSize = CI_DeserializeMsg(encBuffer);
-			CmdMsgPtr = encBuffer;
+			CmdMsgPtr = (CFE_SB_MsgPtr_t)encBuffer;
 #else
 			CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
 #endif
-			if(CmdMsgPtr != NULL)
+			if(MsgSize > 0)
 			{
-				if(MsgSize > 0)
+				/* If number of bytes received less than max */
+				if (MsgSize <= CI_MAX_CMD_INGEST)
 				{
-					/* If number of bytes received less than max */
-					if (MsgSize <= CI_MAX_CMD_INGEST)
+					/* Verify validity of cmd */
+					if (CI_ValidateCmd(CmdMsgPtr, MsgSize) == TRUE)
 					{
-						/* Verify validity of cmd */
-						if (CI_ValidateCmd(CmdMsgPtr, MsgSize) == TRUE)
+						/* Check if cmd is for CI and route if so */
+						CmdMsgId = CFE_SB_GetMsgId(CmdMsgPtr);
+						if (CI_CMD_MID == CmdMsgId)
 						{
-							/* Check if cmd is for CI and route if so */
-							CmdMsgId = CFE_SB_GetMsgId(CmdMsgPtr);
-							if (CI_CMD_MID == CmdMsgId)
-							{
-								CI_ProcessNewAppCmds(CmdMsgPtr);
-							}
-							else
-							{
-								/* Verify cmd is authorized */
-								if (CI_GetCmdAuthorized(CmdMsgPtr) == TRUE)
-								{
-									CFE_ES_PerfLogEntry(CI_SOCKET_RCV_PERF_ID); // need?
-									CI_AppData.HkTlm.IngestMsgCount++;
-									CFE_SB_SendMsg(CmdMsgPtr);
-									CFE_ES_PerfLogExit(CI_SOCKET_RCV_PERF_ID);
-								}
-							}
+							CI_ProcessNewAppCmds(CmdMsgPtr);
 						}
 						else
 						{
-							CI_AppData.HkTlm.usCmdErrCnt++;
-							CFE_EVS_SendEvent (CI_CMD_INVALID_EID, CFE_EVS_ERROR, "Rcvd invalid cmd (%i) for msgId (0x%04X)",
-												CFE_SB_GetCmdCode(CmdMsgPtr), CmdMsgId);
+							/* Verify cmd is authorized */
+							if (CI_GetCmdAuthorized(CmdMsgPtr) == TRUE)
+							{
+								CFE_ES_PerfLogEntry(CI_SOCKET_RCV_PERF_ID); // need?
+								CI_AppData.HkTlm.IngestMsgCount++;
+								CFE_SB_SendMsg(CmdMsgPtr);
+								CFE_ES_PerfLogExit(CI_SOCKET_RCV_PERF_ID);
+							}
 						}
 					}
 					else
 					{
-						CI_AppData.HkTlm.IngestErrorCount++;
-						CFE_EVS_SendEvent(CI_CMD_INGEST_ERR_EID, CFE_EVS_ERROR,
-										  "L%d, cmd %0x %0x dropped, too long",
-										  __LINE__, *(long *)CI_AppData.IngestBuffer,
-										  *(long *)(CI_AppData.IngestBuffer + 4) );
+						CI_AppData.HkTlm.usCmdErrCnt++;
+						CFE_EVS_SendEvent (CI_CMD_INVALID_EID, CFE_EVS_ERROR, "Rcvd invalid cmd (%i) for msgId (0x%04X)",
+											CFE_SB_GetCmdCode(CmdMsgPtr), CmdMsgId);
 					}
 				}
-			}
-			else
-			{
-				//OS_printf("Deserialized is null\n");
+				else
+				{
+					CI_AppData.HkTlm.IngestErrorCount++;
+					CFE_EVS_SendEvent(CI_CMD_INGEST_ERR_EID, CFE_EVS_ERROR,
+									  "L%d, cmd %0x %0x dropped, too long",
+									  __LINE__, *(long *)CI_AppData.IngestBuffer,
+									  *(long *)(CI_AppData.IngestBuffer + 4) );
+				}
 			}
 			OS_TaskDelay(100); // TODO: Verify required
 		}while(CI_AppData.IngestActive == TRUE);
