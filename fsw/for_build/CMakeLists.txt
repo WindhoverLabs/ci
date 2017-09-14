@@ -16,10 +16,10 @@ add_airliner_app_def(ci
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_private_types.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_tbldefs.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_version.h
-        #${CI_PROTOBUF_MSGS_DIR}/ci_auth.pb.c
-        #${CI_PROTOBUF_MSGS_DIR}/ci_auth.pb.h
-        #${CI_PROTOBUF_MSGS_DIR}/ci_reg.pb.c
-        #${CI_PROTOBUF_MSGS_DIR}/ci_reg.pb.h
+        ${CI_PROTOBUF_MSGS_DIR}/ci_auth.pb.c
+        ${CI_PROTOBUF_MSGS_DIR}/ci_auth.pb.h
+        ${CI_PROTOBUF_MSGS_DIR}/ci_reg.pb.c
+        ${CI_PROTOBUF_MSGS_DIR}/ci_reg.pb.h
    
     INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/
