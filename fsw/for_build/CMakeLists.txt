@@ -23,7 +23,7 @@ add_airliner_app_def(ci
    
     INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/
-		${CI_PROTOBUF_MSGS_DIR}
+	${CI_PROTOBUF_MSGS_DIR}
 
     PROTOBUF_DEFS
         ${CMAKE_CURRENT_SOURCE_DIR}/../msgs/proto_defs/ci_reg.proto
