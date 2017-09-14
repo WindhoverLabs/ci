@@ -1,0 +1,9 @@
+syntax = "proto2";
+import "nanopb.proto";
+
+message ci_auth_pb
+{
+	required int msgID = 1;
+	required int cmdCode = 2;
+}
+

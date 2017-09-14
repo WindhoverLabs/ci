@@ -985,7 +985,7 @@ uint32 CI_DeserializeMsg(CFE_SB_MsgPtr_t CmdMsgPtr)
 	boolean				valid;
 	uint32 				(*decodeFunc)(char *, uint32, const void *) = 0;
 	char				decodeBuf[CI_MAX_ENC_LEN];
-
+	OS_printf("Deserializing...\n");
 	msgSize = CFE_SB_GetTotalMsgLength(CmdMsgPtr);
 	valid = CI_ValidateCmd(CmdMsgPtr, msgSize);
 	if(!valid)
@@ -1043,7 +1043,7 @@ uint32 TO_SerializeMsg(CFE_SB_MsgPtr_t msgPtr, char encBuffer[], uint32 inSize)
 	uint32  			hdrSize = 0;
 	uint32  			payloadSize = 0;
 	uint32 				(*encodeFunc)(const void *, char *, uint32) = 0;
-
+	OS_printf("Serializing...\n");
 	/* Get required params */
 	msgId = CFE_SB_GetMsgId(msgPtr);
 	payloadSize = CFE_SB_GetUserDataLength(msgPtr); //change to user data length
@@ -1132,6 +1132,7 @@ void CI_ListenerTaskMain(void)
     uint32  		i = 0;
     uint32  		MsgSize = 0;
     uint32  		iMsg = 0;
+    uint32  		payloadSize = 0;
     CFE_SB_MsgPtr_t CmdMsgPtr;
     CFE_SB_MsgPtr_t MsgPtr;
     CFE_SB_MsgId_t  CmdMsgId;
@@ -1147,14 +1148,24 @@ void CI_ListenerTaskMain(void)
 			memset(encBuffer, '\0', CI_MAX_ENC_LEN);
 			MsgSize = CI_MAX_CMD_INGEST;
 			CI_ReadMessage(CI_AppData.IngestBuffer, &MsgSize);
+			CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
+			payloadSize = CFE_SB_GetUserDataLength(CmdMsgPtr);
 
 #ifdef	CI_DEBUG_SERIALIZED
-			MsgSize = TO_SerializeMsg(CI_AppData.IngestBuffer, encBuffer, sizeof(encBuffer));
+			if (payloadSize > 0)
+			{
+				MsgSize = TO_SerializeMsg(CI_AppData.IngestBuffer, encBuffer, sizeof(encBuffer));
+			}
+
 #endif
 
 #ifdef CI_SERIALIZED
-			MsgSize = CI_DeserializeMsg(encBuffer);
-			CmdMsgPtr = (CFE_SB_MsgPtr_t)encBuffer;
+			if (payloadSize > 0)
+			{
+				MsgSize = CI_DeserializeMsg(encBuffer);
+				CmdMsgPtr = (CFE_SB_MsgPtr_t)encBuffer;
+			}
+
 #else
 			CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
 #endif
