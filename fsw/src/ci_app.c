@@ -971,6 +971,44 @@ CI_GetCmdAuthorized_Exit_tag:
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 /*                                                                 */
+/* Determine Validity of Serialized Command                        */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+boolean CI_ValidateSerialCmd(CFE_SB_Msg_t* MsgPtr)
+{
+	boolean 			bResult = FALSE;
+	uint32  			usMsgLen = 0;
+
+	/* Verify CCSDS version */
+	if (CCSDS_RD_VERS(MsgPtr->Hdr) != 0)
+	{
+		OS_printf("ccsds...\n");
+		goto CI_ValidateSerialCmd_Exit_Tag;
+	}
+
+	/* Verify secondary header present */
+	if (CCSDS_RD_SHDR(MsgPtr->Hdr) == 0)
+	{
+		OS_printf("sechdr...\n");
+		goto CI_ValidateSerialCmd_Exit_Tag;
+	}
+
+	/* Verify packet type is cmd */
+	if (CCSDS_RD_TYPE(MsgPtr->Hdr) != CCSDS_CMD)
+	{
+		OS_printf("cmd...\n");
+		goto CI_ValidateSerialCmd_Exit_Tag;
+	}
+
+	bResult = TRUE;
+
+CI_ValidateSerialCmd_Exit_Tag:
+	return bResult;
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
 /* Deserialize Message                                    		   */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -982,12 +1020,12 @@ uint32 CI_DeserializeMsg(CFE_SB_MsgPtr_t CmdMsgPtr)
 	uint16 				cmdCode = 0;
 	uint32  			payloadSize = 0;
 	uint32  			hdrSize = 0;
-	boolean				valid;
+	boolean				valid = TRUE;
 	uint32 				(*decodeFunc)(char *, uint32, const void *) = 0;
 	char				decodeBuf[CI_MAX_ENC_LEN];
 	OS_printf("Deserializing...\n");
 	msgSize = CFE_SB_GetTotalMsgLength(CmdMsgPtr);
-	valid = CI_ValidateCmd(CmdMsgPtr, msgSize);
+	valid = CI_ValidateSerialCmd(CmdMsgPtr);
 	if(!valid)
 	{
 		CFE_EVS_SendEvent (CI_CMD_INVALID_EID, CFE_EVS_ERROR, "Rcvd invalid cmd for deserialization");
@@ -1133,12 +1171,14 @@ void CI_ListenerTaskMain(void)
     uint32  		MsgSize = 0;
     uint32  		iMsg = 0;
     uint32  		payloadSize = 0;
+    uint32  			hdrSize = 0;
     CFE_SB_MsgPtr_t CmdMsgPtr;
     CFE_SB_MsgPtr_t MsgPtr;
     CFE_SB_MsgId_t  CmdMsgId;
     char			encBuffer[CI_MAX_ENC_LEN];
 
     PBLIB_RegisterMessage(7209, 2, "EA_StartCmd_t");
+    PBLIB_RegisterMessage(6150, 18, "CFE_ES_OverWriteSysLogCmd_t");
 
 	Status = CFE_ES_RegisterChildTask();
 	if (Status == CFE_SUCCESS)
@@ -1150,6 +1190,8 @@ void CI_ListenerTaskMain(void)
 			CI_ReadMessage(CI_AppData.IngestBuffer, &MsgSize);
 			CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
 			payloadSize = CFE_SB_GetUserDataLength(CmdMsgPtr);
+			hdrSize = CFE_SB_MsgHdrSize(CFE_SB_GetMsgId(CmdMsgPtr));
+			OS_printf("Payload Size: %i\n", payloadSize);
 
 #ifdef	CI_DEBUG_SERIALIZED
 			if (payloadSize > 0)
@@ -1157,13 +1199,14 @@ void CI_ListenerTaskMain(void)
 				MsgSize = TO_SerializeMsg(CI_AppData.IngestBuffer, encBuffer, sizeof(encBuffer));
 			}
 
+
 #endif
 
 #ifdef CI_SERIALIZED
 			if (payloadSize > 0)
 			{
-				MsgSize = CI_DeserializeMsg(encBuffer);
-				CmdMsgPtr = (CFE_SB_MsgPtr_t)encBuffer;
+				MsgSize = CI_DeserializeMsg(CI_AppData.IngestBuffer);
+				CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
 			}
 
 #else
@@ -1171,6 +1214,12 @@ void CI_ListenerTaskMain(void)
 #endif
 			if(MsgSize > 0)
 			{
+				for (int i = 0; i < MsgSize; ++i)
+
+				{
+					OS_printf("%02x ", CI_AppData.IngestBuffer[i]);
+				}
+				OS_printf("\n");
 				/* If number of bytes received less than max */
 				if (MsgSize <= CI_MAX_CMD_INGEST)
 				{
