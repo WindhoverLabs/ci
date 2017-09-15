@@ -978,26 +978,22 @@ CI_GetCmdAuthorized_Exit_tag:
 boolean CI_ValidateSerialCmd(CFE_SB_Msg_t* MsgPtr)
 {
 	boolean 			bResult = FALSE;
-	uint32  			usMsgLen = 0;
 
 	/* Verify CCSDS version */
 	if (CCSDS_RD_VERS(MsgPtr->Hdr) != 0)
 	{
-		OS_printf("ccsds...\n");
 		goto CI_ValidateSerialCmd_Exit_Tag;
 	}
 
 	/* Verify secondary header present */
 	if (CCSDS_RD_SHDR(MsgPtr->Hdr) == 0)
 	{
-		OS_printf("sechdr...\n");
 		goto CI_ValidateSerialCmd_Exit_Tag;
 	}
 
 	/* Verify packet type is cmd */
 	if (CCSDS_RD_TYPE(MsgPtr->Hdr) != CCSDS_CMD)
 	{
-		OS_printf("cmd...\n");
 		goto CI_ValidateSerialCmd_Exit_Tag;
 	}
 
@@ -1023,7 +1019,7 @@ uint32 CI_DeserializeMsg(CFE_SB_MsgPtr_t CmdMsgPtr)
 	boolean				valid = TRUE;
 	uint32 				(*decodeFunc)(char *, uint32, const void *) = 0;
 	char				decodeBuf[CI_MAX_ENC_LEN];
-	OS_printf("Deserializing...\n");
+
 	msgSize = CFE_SB_GetTotalMsgLength(CmdMsgPtr);
 	valid = CI_ValidateSerialCmd(CmdMsgPtr);
 	if(!valid)
@@ -1081,7 +1077,7 @@ uint32 TO_SerializeMsg(CFE_SB_MsgPtr_t msgPtr, char encBuffer[], uint32 inSize)
 	uint32  			hdrSize = 0;
 	uint32  			payloadSize = 0;
 	uint32 				(*encodeFunc)(const void *, char *, uint32) = 0;
-	OS_printf("Serializing...\n");
+
 	/* Get required params */
 	msgId = CFE_SB_GetMsgId(msgPtr);
 	payloadSize = CFE_SB_GetUserDataLength(msgPtr); //change to user data length
@@ -1191,7 +1187,6 @@ void CI_ListenerTaskMain(void)
 			CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
 			payloadSize = CFE_SB_GetUserDataLength(CmdMsgPtr);
 			hdrSize = CFE_SB_MsgHdrSize(CFE_SB_GetMsgId(CmdMsgPtr));
-			OS_printf("Payload Size: %i\n", payloadSize);
 
 #ifdef	CI_DEBUG_SERIALIZED
 			if (payloadSize > 0)
@@ -1217,9 +1212,9 @@ void CI_ListenerTaskMain(void)
 				for (int i = 0; i < MsgSize; ++i)
 
 				{
-					OS_printf("%02x ", CI_AppData.IngestBuffer[i]);
+					//OS_printf("%02x ", CI_AppData.IngestBuffer[i]);
 				}
-				OS_printf("\n");
+				//OS_printf("\n");
 				/* If number of bytes received less than max */
 				if (MsgSize <= CI_MAX_CMD_INGEST)
 				{

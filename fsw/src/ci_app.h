@@ -416,6 +416,26 @@ void CI_ListenerTaskMain(void);
 boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr, uint32 MsgSize);
 
 /************************************************************************/
+/** \brief Validate Serialized Command
+**
+**  \par Description
+**       This function validates several parameters of a serialized command.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \param [in]   MsgPtr        A #CFE_SB_Msg_t pointer that
+**                              references the software bus message
+**
+**  \returns
+**  TRUE if the command is valid, FALSE if it is not.
+**  \endreturns
+**
+*************************************************************************/
+boolean CI_ValidateSerialCmd(CFE_SB_Msg_t* MsgPtr);
+
+
+/************************************************************************/
 /** \brief Get Command Authorization
 **
 **  \par Description
