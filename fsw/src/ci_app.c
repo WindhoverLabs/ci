@@ -15,6 +15,7 @@
 #include "ci_msg.h"
 #include "ci_events.h"
 #include "ci_version.h"
+#include "pb_lib.h"
 
 
 
@@ -825,7 +826,7 @@ void CI_ProcessTimeouts(void)
 				CI_AppData.ConfigTblPtr->cmds[i].state = UNAUTHORIZED;
 				CFE_EVS_SendEvent (CI_CMD_AUTH_TIMEOUT_EID,
 								   CFE_EVS_INFORMATION,
-								   "Cmd (%i) for msgId (0x%04X) authorization timeout",
+								   "Cmd (%u) for msgId (0x%04X) authorization timeout",
 								   CI_AppData.ConfigTblPtr->cmds[i].code,
 								   CI_AppData.ConfigTblPtr->cmds[i].mid);
 
@@ -983,7 +984,7 @@ uint32 CI_DeserializeMsg(CFE_SB_MsgPtr_t CmdMsgPtr)
 	uint32  			payloadSize = 0;
 	uint32  			hdrSize = 0;
 	boolean				valid;
-	uint32 				(*decodeFunc)(char *, uint32, const void *) = 0;
+	PBLib_DecodeFuncPtr_t  decodeFunc;
 	char				decodeBuf[CI_MAX_ENC_LEN];
 
 	msgSize = CFE_SB_GetTotalMsgLength(CmdMsgPtr);
@@ -1042,7 +1043,7 @@ uint32 TO_SerializeMsg(CFE_SB_MsgPtr_t msgPtr, char encBuffer[], uint32 inSize)
 	uint16 				cmdCode = 0;
 	uint32  			hdrSize = 0;
 	uint32  			payloadSize = 0;
-	uint32 				(*encodeFunc)(const void *, char *, uint32) = 0;
+	PBLib_EncodeFuncPtr_t encodeFunc;
 
 	/* Get required params */
 	msgId = CFE_SB_GetMsgId(msgPtr);
@@ -1113,7 +1114,7 @@ CI_InitListenerTask_Exit_Tag:
 	{
 		CFE_EVS_SendEvent (CI_LISTENER_CREATE_CHDTASK_ERR_EID,
 						   CFE_EVS_ERROR,
-						   "Listener child task failed.  CFE_ES_CreateChildTask returned: 0x%08X",
+						   "Listener child task failed.  CFE_ES_CreateChildTask returned: 0x%08lX",
 						   Status);
 	}
 
@@ -1195,9 +1196,7 @@ void CI_ListenerTaskMain(void)
 				{
 					CI_AppData.HkTlm.IngestErrorCount++;
 					CFE_EVS_SendEvent(CI_CMD_INGEST_ERR_EID, CFE_EVS_ERROR,
-									  "L%d, cmd %0x %0x dropped, too long",
-									  __LINE__, *(long *)CI_AppData.IngestBuffer,
-									  *(long *)(CI_AppData.IngestBuffer + 4) );
+									  "Message too long.  Size = %lu", MsgSize);
 				}
 			}
 			OS_TaskDelay(100); // TODO: Verify required

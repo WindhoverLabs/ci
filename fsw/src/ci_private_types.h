@@ -51,7 +51,7 @@ typedef enum
 typedef struct
 {
     uint16   		mid;
-    int32	 		code;
+    uint16	 		code;
     CI_CmdStep_t	step;
     CI_CmdAuth_t	state;
     int	 			RouteCount;
