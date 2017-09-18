@@ -22,6 +22,7 @@
 int32 hookCalledCount = 0;
 int INIT_CUSTOM_RET;
 int READ_MSG_RET;
+int PBLIB_RET_CODE;
 
 /**************************************************************************
  * Tests for CI_InitEvent()
@@ -1737,6 +1738,185 @@ void Test_CI_ProcessNewAppCmds_Reset(void)
 	UtAssert_EventSent(CI_CMD_INF_EID, CFE_EVS_INFORMATION, "", "Reset cmd event");
 }
 
+/**
+ * Test CI_ValidateSerialCmd(), Bad CCSDS Version
+ */
+void Test_CI_ValidateSerialCmd_Bad_CCSDS(void)
+{
+	boolean		  	retCode = FALSE;
+	CI_NoArgCmd_t 	cmd;
+	uint32  		MsgSize = sizeof(cmd);
+	CFE_SB_MsgPtr_t CmdMsgPtr;
+
+	/* Create CFE_SB_Msg_t */
+	CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
+
+	/* Set to cause to fail */
+	CCSDS_WR_VERS(CmdMsgPtr->Hdr, 1);
+
+	/* Execute the function being tested */
+	retCode = CI_ValidateSerialCmd(CmdMsgPtr);
+
+	/* Verify results */
+	UtAssert_True(retCode==FALSE,"Valid = False");
+}
+
+/**
+ * Test CI_ValidateSerialCmd(), No Secondary Header
+ */
+void Test_CI_ValidateSerialCmd_No_SecHdr(void)
+{
+	boolean		  	retCode = FALSE;
+	CI_NoArgCmd_t 	cmd;
+	uint32  		MsgSize = sizeof(cmd);
+	CFE_SB_MsgPtr_t CmdMsgPtr;
+
+	/* Create CFE_SB_Msg_t */
+	CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
+
+	/* Set to cause to fail */
+	CCSDS_WR_SHDR(CmdMsgPtr->Hdr, 0);
+
+	/* Execute the function being tested */
+	retCode = CI_ValidateSerialCmd(CmdMsgPtr);
+
+	/* Verify results */
+	UtAssert_True(retCode==FALSE,"Valid = False");
+}
+
+/**
+ * Test CI_ValidateSerialCmd(), Not Cmd Packet
+ */
+void Test_CI_ValidateSerialCmd_Not_Cmd(void)
+{
+	boolean		  	retCode = FALSE;
+	CI_NoArgCmd_t 	cmd;
+	uint32  		MsgSize = sizeof(cmd);
+	CFE_SB_MsgPtr_t CmdMsgPtr;
+
+	/* Create CFE_SB_Msg_t */
+	CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
+
+	/* Set to cause to fail */
+	CCSDS_WR_TYPE(CmdMsgPtr->Hdr, 0);
+
+	/* Execute the function being tested */
+	retCode = CI_ValidateSerialCmd(CmdMsgPtr);
+
+	/* Verify results */
+	UtAssert_True(retCode==FALSE,"Valid = False");
+}
+
+/**
+ * Test CI_DeserializeMsg(), Invalid Msg
+ */
+void Test_CI_DeserializeMsg_Inv_Msg(void)
+{
+	boolean		  	retCode = FALSE;
+	CI_NoArgCmd_t 	cmd;
+	uint32  		MsgSize = sizeof(cmd);
+	CFE_SB_MsgPtr_t CmdMsgPtr;
+
+	/* Create CFE_SB_Msg_t */
+	CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
+
+	/* Set to cause to fail */
+	CCSDS_WR_TYPE(CmdMsgPtr->Hdr, 0);
+
+	/* Execute the function being tested */
+	MsgSize = CI_DeserializeMsg(CmdMsgPtr);
+
+	/* Verify results */
+	UtAssert_EventSent(CI_CMD_INVALID_EID, CFE_EVS_ERROR, "", "Invalid cmd for deserialization");
+	UtAssert_True(MsgSize==0,"MsgSize = 0");
+}
+
+/**
+ * Test CI_DeserializeMsg(), No deserialization func
+ */
+void Test_CI_DeserializeMsg_No_Dec_Func(void)
+{
+	boolean		  	retCode = FALSE;
+	CI_NoArgCmd_t 	cmd;
+	uint32  		MsgSize = sizeof(cmd);
+	CFE_SB_MsgPtr_t CmdMsgPtr;
+
+	/* Create CFE_SB_Msg_t */
+	CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
+
+	/* Set to cause to fail */
+	PBLIB_RET_CODE = 0;
+
+	/* Execute the function being tested */
+	MsgSize = CI_DeserializeMsg(CmdMsgPtr);
+
+	/* Verify results */
+	UtAssert_EventSent(CI_NO_DECODE_FUNC_EID, CFE_EVS_ERROR, "", "No deserialization function");
+	UtAssert_True(MsgSize==0,"MsgSize = 0");
+}
+
+/**
+ * Test CI_DeserializeMsg(), Nominal
+ */
+void Test_CI_DeserializeMsg_Nominal(void)
+{
+	boolean		  	retCode = FALSE;
+	CI_CmdRegData_t 	cmdReg;
+	CI_CmdRegData_t 	*regDataPtr;
+	uint32  		MsgSize = sizeof(cmdReg);
+	CFE_SB_MsgPtr_t CmdMsgPtr;
+	PBLib_EncodeFuncPtr_t   encodeFunc;
+	PBLib_DecodeFuncPtr_t	decodeFunc;
+	uint32  			payloadSize = 0;
+	uint32  			hdrSize = 0;
+	char 				encBuffer[CI_MAX_ENC_LEN];
+
+	/* Create CFE_SB_Msg_t */
+	CFE_SB_InitMsg(&cmdReg, CI_CMD_MID, MsgSize, TRUE);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmdReg;
+	CFE_SB_SetCmdCode(CmdMsgPtr, CI_REG_CMD_CC);
+
+	/* Register a new cmd to deserialize */
+	PBLIB_RegisterMessage(CI_CMD_MID, CI_REG_CMD_CC, "CI_CmdRegData");
+
+	/* Set cmd attributes */
+	cmdReg.msgID = TEST_MSG_ID;
+	cmdReg.cmdCode = TEST_CC;
+	cmdReg.step = STEP_2;
+	cmdReg.log = LOG;
+
+	/* Encode message */
+	hdrSize = CFE_SB_MsgHdrSize(CI_CMD_MID);
+	payloadSize = CI_CmdRegData_Enc(CmdMsgPtr, &encBuffer[hdrSize], CI_MAX_ENC_LEN - hdrSize);
+
+	/* Create new SB msg from serialized data */
+	CFE_SB_InitMsg(encBuffer, CI_CMD_MID, MsgSize, FALSE);
+	CmdMsgPtr = (CFE_SB_MsgPtr_t)encBuffer;
+
+	/* Update header info */
+	CFE_SB_SetCmdCode(CmdMsgPtr, CI_REG_CMD_CC);
+	CFE_SB_GenerateChecksum(CmdMsgPtr);
+
+	/* Set to cause to pass */
+	PBLIB_RET_CODE = 1;
+
+	/* Execute the function being tested */
+	MsgSize = CI_DeserializeMsg(CmdMsgPtr);
+	regDataPtr = CmdMsgPtr;
+
+	/* Verify results */
+	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==0,"Event Count = 0");
+	UtAssert_True(regDataPtr->msgID==TEST_MSG_ID,"MsgID = TEST_MSG_ID");
+	UtAssert_True(regDataPtr->cmdCode==TEST_CC,"CmdCode = TEST_CC");
+	UtAssert_True(regDataPtr->step==STEP_2,"Step = STEP_2");
+	UtAssert_True(regDataPtr->log==LOG,"Log = LOG");
+}
+
 /**************************************************************************
  * Rollup Test Cases
  **************************************************************************/
@@ -1879,6 +2059,19 @@ void CI_App_Test_AddTestCases(void)
 				"Test_CI_ProcessTimeouts_Update");
     UtTest_Add(Test_CI_ProcessNewAppCmds_Reset, CI_Test_Setup_InitTbls, CI_Test_TearDown,
 				"Test_CI_ProcessNewAppCmds_Reset");
+    UtTest_Add(Test_CI_ValidateSerialCmd_Bad_CCSDS, CI_Test_Setup, CI_Test_TearDown,
+				"Test_CI_ValidateSerialCmd_Bad_CCSDS");
+    UtTest_Add(Test_CI_ValidateSerialCmd_No_SecHdr, CI_Test_Setup, CI_Test_TearDown,
+				"Test_CI_ValidateSerialCmd_No_SecHdr");
+    UtTest_Add(Test_CI_ValidateSerialCmd_Not_Cmd, CI_Test_Setup, CI_Test_TearDown,
+				"Test_CI_ValidateSerialCmd_Not_Cmd");
+    UtTest_Add(Test_CI_DeserializeMsg_Inv_Msg, CI_Test_Setup, CI_Test_TearDown,
+				"Test_CI_DeserializeMsg_Inv_Msg");
+    UtTest_Add(Test_CI_DeserializeMsg_No_Dec_Func, CI_Test_Setup, CI_Test_TearDown,
+				"Test_CI_DeserializeMsg_No_Dec_Func");
+    UtTest_Add(Test_CI_DeserializeMsg_Nominal, CI_Test_Setup, CI_Test_TearDown,
+				"Test_CI_DeserializeMsg_Nominal");
+
 }
 
 

@@ -24,6 +24,7 @@
 #include "ci_cds_utils.h"
 #include "ci_tbldefs.h"
 #include "ci_custom.h"
+//#include "ci_serialization.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,6 +37,9 @@ extern "C" {
 #define CI_LISTENER_TASK_NAME  		"CI_LISTENER"
 #define CI_LISTENER_TASK_STACK_SIZE	16000
 #define CI_LISTENER_TASK_PRIORITY	100
+#define CI_SERIAL_LISTENER_TASK_NAME  		"CI_SERIAL_LISTENER"
+#define CI_SERIAL_LISTENER_TASK_STACK_SIZE	16000
+#define CI_SERIAL_LISTENER_TASK_PRIORITY	100
 #define CI_CFG_TBL_MUTEX_NAME 		"CI_CFG_TBL_MUTEX"
 #define CI_TIME_TBL_MUTEX_NAME 		"CI_TIME_TBL_MUTEX"
 
@@ -113,11 +117,17 @@ typedef struct
 	/** \brief Mutex for CI timeout table */
 	uint32          TimeoutTblMutex;
 
-    /** \brief ID of child task */
+    /** \brief ID of listener child task */
     uint32          ListenerTaskID;
+
+    /** \brief ID of serialized listener child task */
+	uint32          SerialListenerTaskID;
 
     /** \brief Buffer for child task cmd ingest */
     uint8           IngestBuffer[CI_MAX_CMD_INGEST];
+
+    /** \brief Buffer for serialized child task cmd ingest */
+    uint8           SerialIngestBuffer[CI_MAX_CMD_INGEST];
 
     /** \brief Run flag for ingest loop */
     boolean			IngestActive;
@@ -393,6 +403,19 @@ int32  CI_InitListenerTask(void);
 **
 *************************************************************************/
 void CI_ListenerTaskMain(void);
+
+/************************************************************************/
+/** \brief Serialized Listener Task Main
+**
+**  \par Description
+**       This function opens a socket and ingests all serialized cmds for
+**       CI to process before publishing them to the software bus.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+*************************************************************************/
+void CI_SerializedListenerTaskMain(void);
 
 /************************************************************************/
 /** \brief Validate Command

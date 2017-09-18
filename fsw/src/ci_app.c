@@ -1018,7 +1018,7 @@ uint32 CI_DeserializeMsg(CFE_SB_MsgPtr_t CmdMsgPtr)
 	uint32  			payloadSize = 0;
 	uint32  			hdrSize = 0;
 	boolean				valid = TRUE;
-	uint32 				(*decodeFunc)(char *, uint32, const void *) = 0;
+	PBLib_DecodeFuncPtr_t	decodeFunc;
 	char				decodeBuf[CI_MAX_ENC_LEN];
 
 	msgSize = CFE_SB_GetTotalMsgLength(CmdMsgPtr);
@@ -1143,6 +1143,24 @@ int32 CI_InitListenerTask(void)
 								   CI_LISTENER_TASK_PRIORITY,
 								   0);
 
+	if (Status != CFE_SUCCESS)
+	{
+		goto CI_InitListenerTask_Exit_Tag;
+	}
+
+	Status= CFE_ES_CreateChildTask(&CI_AppData.ListenerTaskID,
+									CI_SERIAL_LISTENER_TASK_NAME,
+									CI_SerializedListenerTaskMain,
+									NULL,
+									CI_SERIAL_LISTENER_TASK_STACK_SIZE,
+									CI_SERIAL_LISTENER_TASK_PRIORITY,
+									0);
+
+	if (Status != CFE_SUCCESS)
+	{
+		goto CI_InitListenerTask_Exit_Tag;
+	}
+
 CI_InitListenerTask_Exit_Tag:
 	if (Status != CFE_SUCCESS)
 	{
@@ -1164,13 +1182,8 @@ CI_InitListenerTask_Exit_Tag:
 void CI_ListenerTaskMain(void)
 {
     int32 			Status = -1;
-    uint32  		i = 0;
     uint32  		MsgSize = 0;
-    uint32  		iMsg = 0;
-    uint32  		payloadSize = 0;
-    uint32  			hdrSize = 0;
     CFE_SB_MsgPtr_t CmdMsgPtr;
-    CFE_SB_MsgPtr_t MsgPtr;
     CFE_SB_MsgId_t  CmdMsgId;
     char			encBuffer[CI_MAX_ENC_LEN];
 
@@ -1182,40 +1195,13 @@ void CI_ListenerTaskMain(void)
 	{
 		/* Receive data and place in IngestBuffer */
 		do{
-			memset(encBuffer, '\0', CI_MAX_ENC_LEN);
+			OS_printf("In child task");
 			MsgSize = CI_MAX_CMD_INGEST;
 			CI_ReadMessage(CI_AppData.IngestBuffer, &MsgSize);
 			CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
-			payloadSize = CFE_SB_GetUserDataLength(CmdMsgPtr);
-			hdrSize = CFE_SB_MsgHdrSize(CFE_SB_GetMsgId(CmdMsgPtr));
 
-#ifdef	CI_DEBUG_SERIALIZED
-			if (payloadSize > 0)
-			{
-				MsgSize = TO_SerializeMsg(CI_AppData.IngestBuffer, encBuffer, sizeof(encBuffer));
-			}
-
-
-#endif
-
-#ifdef CI_SERIALIZED
-			if (payloadSize > 0)
-			{
-				MsgSize = CI_DeserializeMsg(CI_AppData.IngestBuffer);
-				CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
-			}
-
-#else
-			CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
-#endif
 			if(MsgSize > 0)
 			{
-				for (int i = 0; i < MsgSize; ++i)
-
-				{
-					//OS_printf("%02x ", CI_AppData.IngestBuffer[i]);
-				}
-				//OS_printf("\n");
 				/* If number of bytes received less than max */
 				if (MsgSize <= CI_MAX_CMD_INGEST)
 				{
@@ -1255,6 +1241,92 @@ void CI_ListenerTaskMain(void)
 				}
 			}
 			OS_TaskDelay(100); // TODO: Verify required
+		}while(CI_AppData.IngestActive == TRUE);
+
+		CFE_ES_ExitChildTask();
+	}
+	else
+	{
+		/* Can't send event or write to syslog because this task isn't registered with the cFE. */
+		OS_printf("CI Listener Child Task Registration failed!\n");
+	}
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+/*                                                                 */
+/* Child Task Serialized Listener Main		                       */
+/*                                                                 */
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+void CI_SerializedListenerTaskMain(void)
+{
+    int32 			Status = -1;
+    uint32  		MsgSize = 0;
+    uint32  		payloadSize = 0;
+    uint32  		hdrSize = 0;
+    CFE_SB_MsgPtr_t CmdMsgPtr;
+    CFE_SB_MsgId_t  CmdMsgId;
+
+	Status = CFE_ES_RegisterChildTask();
+	if (Status == CFE_SUCCESS)
+	{
+		/* Receive data and place in IngestBuffer */
+		do{
+			OS_printf("In serial child task");
+			MsgSize = CI_MAX_CMD_INGEST;
+			CI_ReadSerializedMessage(CI_AppData.SerialIngestBuffer, &MsgSize);
+			CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.SerialIngestBuffer;
+			payloadSize = CFE_SB_GetUserDataLength(CmdMsgPtr);
+			hdrSize = CFE_SB_MsgHdrSize(CFE_SB_GetMsgId(CmdMsgPtr));
+
+			/* Don't need to deserialize if there is no payload */
+			if (payloadSize > 0)
+			{
+				MsgSize = CI_DeserializeMsg(CI_AppData.SerialIngestBuffer);
+				CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.SerialIngestBuffer;
+			}
+
+			if(MsgSize > 0)
+			{
+				/* If number of bytes received less than max */
+				if (MsgSize <= CI_MAX_CMD_INGEST)
+				{
+					/* Verify validity of cmd */
+					if (CI_ValidateCmd(CmdMsgPtr, MsgSize) == TRUE)
+					{
+						/* Check if cmd is for CI and route if so */
+						CmdMsgId = CFE_SB_GetMsgId(CmdMsgPtr);
+						if (CI_CMD_MID == CmdMsgId)
+						{
+							CI_ProcessNewAppCmds(CmdMsgPtr);
+						}
+						else
+						{
+							/* Verify cmd is authorized */
+							if (CI_GetCmdAuthorized(CmdMsgPtr) == TRUE)
+							{
+								CFE_ES_PerfLogEntry(CI_SOCKET_RCV_PERF_ID); // need?
+								CI_AppData.HkTlm.IngestMsgCount++;
+								CFE_SB_SendMsg(CmdMsgPtr);
+								CFE_ES_PerfLogExit(CI_SOCKET_RCV_PERF_ID);
+							}
+						}
+					}
+					else
+					{
+						CI_AppData.HkTlm.usCmdErrCnt++;
+						CFE_EVS_SendEvent (CI_CMD_INVALID_EID, CFE_EVS_ERROR, "Rcvd invalid cmd (%i) for msgId (0x%04X)",
+											CFE_SB_GetCmdCode(CmdMsgPtr), CmdMsgId);
+					}
+				}
+				else
+				{
+					CI_AppData.HkTlm.IngestErrorCount++;
+					CFE_EVS_SendEvent(CI_CMD_INGEST_ERR_EID, CFE_EVS_ERROR,
+									  "Message too long.  Size = %lu", MsgSize);
+				}
+			}
+			OS_TaskDelay(100);
 		}while(CI_AppData.IngestActive == TRUE);
 
 		CFE_ES_ExitChildTask();

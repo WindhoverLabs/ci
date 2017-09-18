@@ -6,6 +6,7 @@
 
 int32 CI_InitCustom(void);
 int32 CI_ReadMessage(char* buffer, uint32* size);
+int32 CI_ReadSerializedMessage(char* buffer, uint32* size);
 int32 CI_CleanupCustom(void);
 
 #endif

@@ -20,10 +20,12 @@ add_airliner_app_def(ci
         ${CI_PROTOBUF_MSGS_DIR}/ci_auth.pb.h
         ${CI_PROTOBUF_MSGS_DIR}/ci_reg.pb.c
         ${CI_PROTOBUF_MSGS_DIR}/ci_reg.pb.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_serialization.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_serialization.c
    
     INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/
-	${CI_PROTOBUF_MSGS_DIR}
+		${CI_PROTOBUF_MSGS_DIR}
 
     PROTOBUF_DEFS
         ${CMAKE_CURRENT_SOURCE_DIR}/../msgs/proto_defs/ci_reg.proto
@@ -39,7 +41,8 @@ add_airliner_app_def(ci
 
 
 add_airliner_app_unit_test(ci-ut
-    UTASSERT 
+    UTASSERT
+	NANOPB
     SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_app.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_app.h
@@ -67,11 +70,22 @@ add_airliner_app_unit_test(ci-ut
         ${CMAKE_CURRENT_SOURCE_DIR}/../unit_test/ci_test_utils.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../unit_test/ci_testrunner.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../../../pblib/fsw/src/pb_lib.c
+        ${CI_PROTOBUF_MSGS_DIR}/ci_auth.pb.c
+        ${CI_PROTOBUF_MSGS_DIR}/ci_auth.pb.h
+        ${CI_PROTOBUF_MSGS_DIR}/ci_reg.pb.c
+        ${CI_PROTOBUF_MSGS_DIR}/ci_reg.pb.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_serialization.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_serialization.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/../unit_test/ci_wrap_pbl.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/../unit_test/ci_wrap_pbl.h
 
     INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/
         ${CMAKE_CURRENT_SOURCE_DIR}/../unit_test/      
         ${CI_PROTOBUF_MSGS_DIR}
+
+	WRAPPERS
+		PBLIB_GetDeserializationFunc
 )
 
 set(CI_PROTOBUF_MSGS_DIR ${CI_PROTOBUF_MSGS_DIR} PARENT_SCOPE)
