@@ -6,6 +6,8 @@
 extern "C" {
 #endif
 
+#include "ci_serialization.h"
+
 void CI_App_Test_AddTestCases(void);
 
 

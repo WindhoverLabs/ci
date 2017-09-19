@@ -24,7 +24,6 @@
 #include "ci_cds_utils.h"
 #include "ci_tbldefs.h"
 #include "ci_custom.h"
-//#include "ci_serialization.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,15 +32,15 @@ extern "C" {
 /************************************************************************
 ** Local Defines
 *************************************************************************/
-#define CI_MAX_CMD_INGEST           (CFE_SB_MAX_SB_MSG_SIZE)
-#define CI_LISTENER_TASK_NAME  		"CI_LISTENER"
-#define CI_LISTENER_TASK_STACK_SIZE	16000
-#define CI_LISTENER_TASK_PRIORITY	100
+#define CI_MAX_CMD_INGEST           		(CFE_SB_MAX_SB_MSG_SIZE)
+#define CI_LISTENER_TASK_NAME  				"CI_LISTENER"
+#define CI_LISTENER_TASK_STACK_SIZE			16000
+#define CI_LISTENER_TASK_PRIORITY			100
 #define CI_SERIAL_LISTENER_TASK_NAME  		"CI_SERIAL_LISTENER"
 #define CI_SERIAL_LISTENER_TASK_STACK_SIZE	16000
 #define CI_SERIAL_LISTENER_TASK_PRIORITY	100
-#define CI_CFG_TBL_MUTEX_NAME 		"CI_CFG_TBL_MUTEX"
-#define CI_TIME_TBL_MUTEX_NAME 		"CI_TIME_TBL_MUTEX"
+#define CI_CFG_TBL_MUTEX_NAME 				"CI_CFG_TBL_MUTEX"
+#define CI_TIME_TBL_MUTEX_NAME 				"CI_TIME_TBL_MUTEX"
 
 /************************************************************************
 ** Local Structure Definitions
@@ -416,6 +415,25 @@ void CI_ListenerTaskMain(void);
 **
 *************************************************************************/
 void CI_SerializedListenerTaskMain(void);
+
+
+/************************************************************************/
+/** \brief Process Ingest Command
+**
+**  \par Description
+**       This function contains the shared logic for processing a cmd
+**       used by both the serialized and nonserialized ingest loops.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \param [in]   CmdMsgPtr     A #CFE_SB_Msg_t pointer that
+**                              references the software bus message
+**  \param [in]   MsgSize 		The size of the message from the
+**  							ingest buffer
+**
+*************************************************************************/
+void CI_ProcessIngestCmd(CFE_SB_MsgPtr_t CmdMsgPtr, uint32 MsgSize);
 
 /************************************************************************/
 /** \brief Validate Command

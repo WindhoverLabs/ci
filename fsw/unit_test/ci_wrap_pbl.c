@@ -14,6 +14,6 @@ PBLib_DecodeFuncPtr_t __wrap_PBLIB_GetDeserializationFunc(CFE_SB_MsgId_t msgId, 
 		return 0;
 	}
 
-	return CI_CmdRegData_Dec;
+	return (PBLib_DecodeFuncPtr_t)CI_CmdRegData_Dec;
 }
 

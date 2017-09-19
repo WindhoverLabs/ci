@@ -1892,7 +1892,7 @@ void Test_CI_DeserializeMsg_Nominal(void)
 
 	/* Encode message */
 	hdrSize = CFE_SB_MsgHdrSize(CI_CMD_MID);
-	payloadSize = CI_CmdRegData_Enc(CmdMsgPtr, &encBuffer[hdrSize], CI_MAX_ENC_LEN - hdrSize);
+	payloadSize = CI_CmdRegData_Enc(&cmdReg, &encBuffer[hdrSize], CI_MAX_ENC_LEN - hdrSize);
 
 	/* Create new SB msg from serialized data */
 	CFE_SB_InitMsg(encBuffer, CI_CMD_MID, MsgSize, FALSE);
@@ -1907,7 +1907,7 @@ void Test_CI_DeserializeMsg_Nominal(void)
 
 	/* Execute the function being tested */
 	MsgSize = CI_DeserializeMsg(CmdMsgPtr);
-	regDataPtr = CmdMsgPtr;
+	regDataPtr = (CI_CmdRegData_t *)CmdMsgPtr;
 
 	/* Verify results */
 	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==0,"Event Count = 0");
