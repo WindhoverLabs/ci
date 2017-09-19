@@ -1148,13 +1148,13 @@ int32 CI_InitListenerTask(void)
 		goto CI_InitListenerTask_Exit_Tag;
 	}
 
-	Status= CFE_ES_CreateChildTask(&CI_AppData.ListenerTaskID,
-									CI_SERIAL_LISTENER_TASK_NAME,
-									CI_SerializedListenerTaskMain,
-									NULL,
-									CI_SERIAL_LISTENER_TASK_STACK_SIZE,
-									CI_SERIAL_LISTENER_TASK_PRIORITY,
-									0);
+//	Status= CFE_ES_CreateChildTask(&CI_AppData.SerialListenerTaskID,
+//									CI_SERIAL_LISTENER_TASK_NAME,
+//									CI_SerializedListenerTaskMain,
+//									NULL,
+//									CI_SERIAL_LISTENER_TASK_STACK_SIZE,
+//									CI_SERIAL_LISTENER_TASK_PRIORITY,
+//									0);
 
 	if (Status != CFE_SUCCESS)
 	{
@@ -1185,27 +1185,24 @@ void CI_ListenerTaskMain(void)
     uint32  		MsgSize = 0;
     CFE_SB_MsgPtr_t CmdMsgPtr;
     CFE_SB_MsgId_t  CmdMsgId;
-    char			encBuffer[CI_MAX_ENC_LEN];
 
-    PBLIB_RegisterMessage(7209, 2, "EA_StartCmd_t");
-    PBLIB_RegisterMessage(6150, 18, "CFE_ES_OverWriteSysLogCmd_t");
+    //PBLIB_RegisterMessage(7209, 2, "EA_StartCmd_t");
+    //PBLIB_RegisterMessage(6150, 18, "CFE_ES_OverWriteSysLogCmd_t");
 
 	Status = CFE_ES_RegisterChildTask();
 	if (Status == CFE_SUCCESS)
 	{
 		/* Receive data and place in IngestBuffer */
 		do{
-			OS_printf("In child task");
 			MsgSize = CI_MAX_CMD_INGEST;
 			CI_ReadMessage(CI_AppData.IngestBuffer, &MsgSize);
-			CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
-
 			if(MsgSize > 0)
 			{
 				/* If number of bytes received less than max */
 				if (MsgSize <= CI_MAX_CMD_INGEST)
 				{
 					/* Verify validity of cmd */
+					CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.IngestBuffer;
 					if (CI_ValidateCmd(CmdMsgPtr, MsgSize) == TRUE)
 					{
 						/* Check if cmd is for CI and route if so */
@@ -1219,7 +1216,7 @@ void CI_ListenerTaskMain(void)
 							/* Verify cmd is authorized */
 							if (CI_GetCmdAuthorized(CmdMsgPtr) == TRUE)
 							{
-								CFE_ES_PerfLogEntry(CI_SOCKET_RCV_PERF_ID); // need?
+								CFE_ES_PerfLogEntry(CI_SOCKET_RCV_PERF_ID);
 								CI_AppData.HkTlm.IngestMsgCount++;
 								CFE_SB_SendMsg(CmdMsgPtr);
 								CFE_ES_PerfLogExit(CI_SOCKET_RCV_PERF_ID);
@@ -1272,7 +1269,6 @@ void CI_SerializedListenerTaskMain(void)
 	{
 		/* Receive data and place in IngestBuffer */
 		do{
-			OS_printf("In serial child task");
 			MsgSize = CI_MAX_CMD_INGEST;
 			CI_ReadSerializedMessage(CI_AppData.SerialIngestBuffer, &MsgSize);
 			CmdMsgPtr = (CFE_SB_MsgPtr_t)CI_AppData.SerialIngestBuffer;
