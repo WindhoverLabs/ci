@@ -15,7 +15,8 @@ typedef enum
 	EXT_STEP_2,
 	EXT_STEP_2_AUTH,
 	LONG_CMD,
-	INV_CMD
+	INV_CMD,
+	SERIALIZED_CMD
 } CI_RecvMsgs_t;
 
 /* Return codes */
