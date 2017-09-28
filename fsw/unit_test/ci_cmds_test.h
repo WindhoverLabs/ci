@@ -1,4 +1,3 @@
-
 #ifndef CI_CMDS_TEST_H
 #define CI_CMDS_TEST_H
 

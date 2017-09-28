@@ -1,4 +1,3 @@
-    
 #ifndef CI_VERSION_H
 #define CI_VERSION_H
 

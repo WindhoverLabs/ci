@@ -1,4 +1,3 @@
-    
 #ifndef CI_MSG_H
 #define CI_MSG_H
 

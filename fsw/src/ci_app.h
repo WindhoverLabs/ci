@@ -1,4 +1,3 @@
-    
 #ifndef CI_APP_H
 #define CI_APP_H
 

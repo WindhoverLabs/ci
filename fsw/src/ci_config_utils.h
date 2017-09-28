@@ -1,4 +1,3 @@
-    
 #ifndef CI_CONFIG_UTILS_H
 #define CI_CONFIG_UTILS_H
 

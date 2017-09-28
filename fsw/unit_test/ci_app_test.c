@@ -1,4 +1,3 @@
-
 #include "ci_app_test.h"
 #include "ci_app.h"
 #include "ci_test_utils.h"

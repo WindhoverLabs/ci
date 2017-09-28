@@ -1,4 +1,3 @@
-    
 #ifndef CI_EVENTS_H
 #define CI_EVENTS_H
 

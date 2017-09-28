@@ -1,5 +1,5 @@
-#ifndef SRC_CI_SERIALIZATION_H_
-#define SRC_CI_SERIALIZATION_H_
+#ifndef SRC_CI_SERIALIZATION_H
+#define SRC_CI_SERIALIZATION_H
 #endif
 
 #include "cfe.h"

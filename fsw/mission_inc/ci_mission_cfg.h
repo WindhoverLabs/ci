@@ -1,4 +1,3 @@
-    
 #ifndef CI_MISSION_CFG_H
 #define CI_MISSION_CFG_H
 

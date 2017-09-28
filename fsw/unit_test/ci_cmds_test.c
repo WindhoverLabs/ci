@@ -1,4 +1,3 @@
-
 #include "ci_cmds_test.h"
 #include "ci_test_utils.h"
 

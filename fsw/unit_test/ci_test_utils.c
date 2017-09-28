@@ -1,6 +1,4 @@
-
 #include "ci_test_utils.h"
-
 #include "ut_cfe_evs_hooks.h"
 #include "ut_cfe_time_stubs.h"
 #include "ut_cfe_psp_memutils_stubs.h"

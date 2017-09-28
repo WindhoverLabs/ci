@@ -1,4 +1,3 @@
-
 #ifndef CI_CUSTOM_H
 #define CI_CUSTOM_H
 

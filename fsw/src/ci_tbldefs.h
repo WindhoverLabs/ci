@@ -1,4 +1,3 @@
-    
 #ifndef CI_TBLDEFS_H
 #define CI_TBLDEFS_H
 

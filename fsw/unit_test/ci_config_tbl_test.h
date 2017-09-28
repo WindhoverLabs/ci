@@ -1,4 +1,3 @@
-
 #ifndef CI_CONFIG_TBL_TEST_H
 #define CI_CONFIG_TBL_TEST_H
 

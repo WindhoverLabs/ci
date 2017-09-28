@@ -1,4 +1,3 @@
-    
 #ifndef CI_PRIVATE_TYPES_H
 #define CI_PRIVATE_TYPES_H
 

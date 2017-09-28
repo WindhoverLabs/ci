@@ -1,4 +1,3 @@
-
 #ifndef CI_TEST_UTILS_H
 #define CI_TEST_UTILS_H
 
