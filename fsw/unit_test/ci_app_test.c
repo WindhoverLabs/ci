@@ -1902,8 +1902,6 @@ void Test_CI_DeserializeMsg_Nominal(void)
 	CI_CmdRegData_t 	*regDataPtr;
 	uint32  		MsgSize = sizeof(cmdReg);
 	CFE_SB_MsgPtr_t CmdMsgPtr;
-	PBLib_EncodeFuncPtr_t   encodeFunc;
-	PBLib_DecodeFuncPtr_t	decodeFunc;
 	uint32  			payloadSize = 0;
 	uint32  			hdrSize = 0;
 	char 				encBuffer[CI_MAX_ENC_LEN];
@@ -1949,6 +1947,62 @@ void Test_CI_DeserializeMsg_Nominal(void)
 	UtAssert_True(regDataPtr->log==LOG,"Log = LOG");
 }
 
+/**
+ * Test CI_SerializedListenerTaskMain(), Fail CFE register
+ */
+void Test_CI_SerializedListenerTaskMain_FailRegister(void)
+{
+	/* Set to cause message "CI Listener Child Task Registration failed!" to be printed */
+	Ut_CFE_ES_SetReturnCode(UT_CFE_ES_REGISTERCHILDTASK_INDEX, -1, 1);
+
+	/* Execute the function being tested */
+	CI_SerializedListenerTaskMain();
+
+	/* If this occurs no events will be sent because the task isn't registered with CFE */
+	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==0,"Event Count = 0");
+}
+
+/**
+ * Test CI_SerializedListenerTaskMain(), No Payload
+ */
+void Test_CI_SerializedListenerTaskMain_No_Payload(void)
+{
+	/* Prevent more than one loop */
+	CI_AppData.IngestActive = FALSE;
+
+	/* Set to cause to fail */
+	READ_MSG_RET = CI_CMD; // Note: This is a CI noop cmd
+
+	/* Execute the function being tested */
+	CI_SerializedListenerTaskMain();
+
+	/* Verify results */
+	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==1,"Event Count = 1");
+	UtAssert_EventSent(CI_CMD_INF_EID, CFE_EVS_INFORMATION, "", "Recvd NOOP cmd");
+}
+
+/**
+ * Test CI_SerializedListenerTaskMain(), Invalid Payload
+ */
+void Test_CI_SerializedListenerTaskMain_Inv_Payload(void)
+{
+	/* Prevent more than one loop */
+	CI_AppData.IngestActive = FALSE;
+
+	/* Set to cause to fail */
+	READ_MSG_RET = INV_CMD;
+	PBLIB_RET_CODE = 0;
+
+	/* Execute the function being tested */
+	CI_SerializedListenerTaskMain();
+
+	/* Verify results */
+	UtAssert_EventSent(CI_CMD_INVALID_EID, CFE_EVS_ERROR, "Rcvd invalid cmd for deserialization", "Rcvd invalid cmd");
+	UtAssert_True(Ut_CFE_EVS_GetEventQueueDepth()==1,"Event Count = 1");
+}
+
+
+
 /**************************************************************************
  * Rollup Test Cases
  **************************************************************************/
@@ -1956,7 +2010,6 @@ void CI_App_Test_AddTestCases(void)
 {
     UtTest_Add(Test_CI_InitEvent_Fail_Register, CI_Test_Setup, CI_Test_TearDown,
                "Test_CI_InitEvent_Fail_Register");
-
     UtTest_Add(Test_CI_InitPipe_Fail_CreateSCHPipe, CI_Test_Setup, CI_Test_TearDown,
                "Test_CI_InitPipe_Fail_CreateSCHPipe");
     UtTest_Add(Test_CI_InitPipe_Fail_SubscribeWakeup, CI_Test_Setup, CI_Test_TearDown,
@@ -2103,6 +2156,13 @@ void CI_App_Test_AddTestCases(void)
 				"Test_CI_DeserializeMsg_No_Dec_Func");
     UtTest_Add(Test_CI_DeserializeMsg_Nominal, CI_Test_Setup, CI_Test_TearDown,
 				"Test_CI_DeserializeMsg_Nominal");
+    UtTest_Add(Test_CI_SerializedListenerTaskMain_FailRegister, CI_Test_Setup, CI_Test_TearDown,
+				"Test_CI_SerializedListenerTaskMain_FailRegister");
+    UtTest_Add(Test_CI_SerializedListenerTaskMain_No_Payload, CI_Test_Setup, CI_Test_TearDown,
+				"Test_CI_SerializedListenerTaskMain_No_Payload");
+    UtTest_Add(Test_CI_SerializedListenerTaskMain_Inv_Payload, CI_Test_Setup, CI_Test_TearDown,
+				"Test_CI_SerializedListenerTaskMain_Inv_Payload");
+
 
 }
 
