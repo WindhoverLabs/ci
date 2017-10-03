@@ -118,7 +118,7 @@ add_airliner_app_unit_test(ci-ut
         ${CI_PROTOBUF_MSGS_DIR}
 
 	WRAPPERS
-		PBLIB_GetDeserializationFunc
+		PBLIB_GetCmdDeserializationFunc
 )
 
 set(CI_PROTOBUF_MSGS_DIR ${CI_PROTOBUF_MSGS_DIR} PARENT_SCOPE)

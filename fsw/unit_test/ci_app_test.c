@@ -1912,7 +1912,7 @@ void Test_CI_DeserializeMsg_Nominal(void)
 	CFE_SB_SetCmdCode(CmdMsgPtr, CI_REG_CMD_CC);
 
 	/* Register a new cmd to deserialize */
-	PBLIB_RegisterMessage(CI_CMD_MID, CI_REG_CMD_CC, "CI_CmdRegData");
+	PBLIB_RegisterCmdMessage(CI_CMD_MID, CI_REG_CMD_CC, "CI_CmdRegData");
 
 	/* Set cmd attributes */
 	cmdReg.msgID = TEST_MSG_ID;

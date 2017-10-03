@@ -1069,7 +1069,7 @@ uint32 CI_DeserializeMsg(CFE_SB_MsgPtr_t CmdMsgPtr)
 	payloadSize = CFE_SB_GetUserDataLength(CmdMsgPtr);
 
 	/* Get deserialization function from PBL */
-	decodeFunc = PBLIB_GetDeserializationFunc(msgId, cmdCode);
+	decodeFunc = PBLIB_GetCmdDeserializationFunc(msgId, cmdCode);
 	if(decodeFunc == 0)
 	{
 		msgSize = 0;
@@ -1223,8 +1223,8 @@ void CI_ListenerTaskMain(void)
     CFE_SB_MsgPtr_t CmdMsgPtr;
     CFE_SB_MsgId_t  CmdMsgId;
 
-    PBLIB_RegisterMessage(7209, 2, "EA_StartCmd_t");
-    //PBLIB_RegisterMessage(6150, 18, "CFE_ES_OverWriteSysLogCmd_t");
+    PBLIB_RegisterCmdMessage(7209, 2, "EA_StartCmd_t");
+    //PBLIB_RegisterCmdMessage(6150, 18, "CFE_ES_OverWriteSysLogCmd_t");
 
 	Status = CFE_ES_RegisterChildTask();
 	if (Status == CFE_SUCCESS)

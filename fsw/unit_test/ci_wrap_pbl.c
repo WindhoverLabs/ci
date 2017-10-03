@@ -40,7 +40,7 @@ extern "C" {
 
 int PBLIB_RET_CODE = 0;
 
-PBLib_DecodeFuncPtr_t __wrap_PBLIB_GetDeserializationFunc(CFE_SB_MsgId_t msgId, uint16 cmdCode)
+PBLib_DecodeFuncPtr_t __wrap_PBLIB_GetCmdDeserializationFunc(CFE_SB_MsgId_t msgId, uint16 cmdCode)
 {
 	if(PBLIB_RET_CODE == 0)
 	{
