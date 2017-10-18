@@ -1898,13 +1898,13 @@ void Test_CI_DeserializeMsg_No_Dec_Func(void)
 void Test_CI_DeserializeMsg_Nominal(void)
 {
 	boolean		  	retCode = FALSE;
-	CI_CmdRegData_t 	cmdReg;
-	CI_CmdRegData_t 	*regDataPtr;
+	CI_CmdRegData_t 	cmdReg = {0};
+	CI_CmdRegData_t 	*regDataPtr = 0;
 	uint32  		MsgSize = sizeof(cmdReg);
-	CFE_SB_MsgPtr_t CmdMsgPtr;
+	CFE_SB_MsgPtr_t CmdMsgPtr = 0;
 	uint32  			payloadSize = 0;
 	uint32  			hdrSize = 0;
-	char 				encBuffer[CI_MAX_ENC_LEN];
+	char 				encBuffer[CI_MAX_ENC_LEN] = "\0";
 
 	/* Create CFE_SB_Msg_t */
 	CFE_SB_InitMsg(&cmdReg, CI_CMD_MID, MsgSize, TRUE);

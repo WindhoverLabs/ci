@@ -1050,8 +1050,8 @@ uint32 CI_DeserializeMsg(CFE_SB_MsgPtr_t CmdMsgPtr)
 	uint32  			payloadSize = 0;
 	uint32  			hdrSize = 0;
 	boolean				valid = TRUE;
-	PBLib_DecodeFuncPtr_t	decodeFunc;
-	char				decodeBuf[CI_MAX_ENC_LEN];
+	PBLib_DecodeFuncPtr_t	decodeFunc = 0;
+	char				decodeBuf[CI_MAX_ENC_LEN] = "\0";
 
 	msgSize = CFE_SB_GetTotalMsgLength(CmdMsgPtr);
 	valid = CI_ValidateSerialCmd(CmdMsgPtr);
@@ -1166,7 +1166,7 @@ CI_InitListenerTask_Exit_Tag:
 
 void CI_ProcessIngestCmd(CFE_SB_MsgPtr_t CmdMsgPtr, uint32 MsgSize)
 {
-    CFE_SB_MsgId_t  CmdMsgId;
+    CFE_SB_MsgId_t  CmdMsgId = 0;
 
 	if(MsgSize > 0)
 	{
