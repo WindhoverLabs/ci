@@ -119,6 +119,9 @@ add_airliner_app_unit_test(ci-ut
 
 	WRAPPERS
 		PBLIB_GetCmdDeserializationFunc
+        
+    VALGRIND_SUPPRESSION_FILE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../unit_test/valgrind.supp
 )
 
 set(CI_PROTOBUF_MSGS_DIR ${CI_PROTOBUF_MSGS_DIR} PARENT_SCOPE)
