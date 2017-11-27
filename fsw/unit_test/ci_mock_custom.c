@@ -73,8 +73,9 @@ int32 CI_ReadMessage(char* buffer, uint32* size)
 		uint32  		MsgSize = sizeof(cmd);
 		CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
 		*size = MsgSize;
+		int32 i = 0;
 
-		for (int i = 0; i < MsgSize; i++)
+		for (i = 0; i < MsgSize; i++)
 		{
 			CI_AppData.IngestBuffer[i] = ci_noop_buf[i];
 		}
@@ -85,6 +86,7 @@ int32 CI_ReadMessage(char* buffer, uint32* size)
 		CI_CmdRegData_t 	*regDataPtr;
 		uint32  			MsgSize = sizeof(cmd);
 		CFE_SB_MsgPtr_t 	CmdMsgPtr;
+		int32 i = 0;
 
 		CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 		regDataPtr = ((CI_CmdRegData_t *) &cmd);
@@ -95,7 +97,7 @@ int32 CI_ReadMessage(char* buffer, uint32* size)
 
 		MsgSize = sizeof(CI_NoArgCmd_t);
 		*size = MsgSize;
-		for (int i = 0; i < MsgSize; i++)
+		for (i = 0; i < MsgSize; i++)
 		{
 			CI_AppData.IngestBuffer[i] = ext_buf[i];
 		}
@@ -107,6 +109,7 @@ int32 CI_ReadMessage(char* buffer, uint32* size)
 		CI_CmdData_t		*CmdData = NULL;
 		uint32  			MsgSize = sizeof(cmd);
 		CFE_SB_MsgPtr_t 	CmdMsgPtr;
+		int32 i = 0;
 
 		CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 		regDataPtr = ((CI_CmdRegData_t *) &cmd);
@@ -117,7 +120,7 @@ int32 CI_ReadMessage(char* buffer, uint32* size)
 
 		MsgSize = sizeof(CI_NoArgCmd_t);
 		*size = MsgSize;
-		for (int i = 0; i < MsgSize; i++)
+		for (i = 0; i < MsgSize; i++)
 		{
 			CI_AppData.IngestBuffer[i] = ext_buf[i];
 		}
@@ -129,6 +132,7 @@ int32 CI_ReadMessage(char* buffer, uint32* size)
 		CI_CmdData_t		*CmdData = NULL;
 		uint32  			MsgSize = sizeof(cmd);
 		CFE_SB_MsgPtr_t 	CmdMsgPtr;
+		int32 i = 0;
 
 		CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 		regDataPtr = ((CI_CmdRegData_t *) &cmd);
@@ -142,7 +146,7 @@ int32 CI_ReadMessage(char* buffer, uint32* size)
 
 		MsgSize = sizeof(CI_NoArgCmd_t);
 		*size = MsgSize;
-		for (int i = 0; i < MsgSize; i++)
+		for (i = 0; i < MsgSize; i++)
 		{
 			CI_AppData.IngestBuffer[i] = ext_buf[i];
 		}
@@ -176,8 +180,9 @@ int32 CI_ReadSerializedMessage(char* buffer, uint32* size)
 		uint32  		MsgSize = sizeof(cmd);
 		CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
 		*size = MsgSize;
+		int32 i = 0;
 
-		for (int i = 0; i < MsgSize; i++)
+		for (i = 0; i < MsgSize; i++)
 		{
 			CI_AppData.SerialIngestBuffer[i] = ci_noop_buf[i];
 		}
@@ -188,6 +193,7 @@ int32 CI_ReadSerializedMessage(char* buffer, uint32* size)
 		CI_CmdRegData_t 	*regDataPtr;
 		uint32  			MsgSize = sizeof(cmd);
 		CFE_SB_MsgPtr_t 	CmdMsgPtr;
+		int32 i = 0;
 
 		CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 		regDataPtr = ((CI_CmdRegData_t *) &cmd);
@@ -198,7 +204,7 @@ int32 CI_ReadSerializedMessage(char* buffer, uint32* size)
 
 		MsgSize = sizeof(CI_NoArgCmd_t);
 		*size = MsgSize;
-		for (int i = 0; i < MsgSize; i++)
+		for (i = 0; i < MsgSize; i++)
 		{
 			CI_AppData.IngestBuffer[i] = ext_buf[i];
 		}
@@ -210,6 +216,7 @@ int32 CI_ReadSerializedMessage(char* buffer, uint32* size)
 		CI_CmdData_t		*CmdData = NULL;
 		uint32  			MsgSize = sizeof(cmd);
 		CFE_SB_MsgPtr_t 	CmdMsgPtr;
+		int32 i = 0;
 
 		CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 		regDataPtr = ((CI_CmdRegData_t *) &cmd);
@@ -220,7 +227,7 @@ int32 CI_ReadSerializedMessage(char* buffer, uint32* size)
 
 		MsgSize = sizeof(CI_NoArgCmd_t);
 		*size = MsgSize;
-		for (int i = 0; i < MsgSize; i++)
+		for (i = 0; i < MsgSize; i++)
 		{
 			CI_AppData.IngestBuffer[i] = ext_buf[i];
 		}
@@ -232,6 +239,7 @@ int32 CI_ReadSerializedMessage(char* buffer, uint32* size)
 		CI_CmdData_t		*CmdData = NULL;
 		uint32  			MsgSize = sizeof(cmd);
 		CFE_SB_MsgPtr_t 	CmdMsgPtr;
+		int32 i = 0;
 
 		CFE_SB_InitMsg(&cmd, TEST_MSG_ID, MsgSize, TRUE);
 		regDataPtr = ((CI_CmdRegData_t *) &cmd);
@@ -245,7 +253,7 @@ int32 CI_ReadSerializedMessage(char* buffer, uint32* size)
 
 		MsgSize = sizeof(CI_NoArgCmd_t);
 		*size = MsgSize;
-		for (int i = 0; i < MsgSize; i++)
+		for (i = 0; i < MsgSize; i++)
 		{
 			CI_AppData.IngestBuffer[i] = ext_buf[i];
 		}
