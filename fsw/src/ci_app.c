@@ -1084,7 +1084,7 @@ uint32 CI_DeserializeMsg(CFE_SB_MsgPtr_t CmdMsgPtr)
 	/* Call decode function */
 	payloadSize = decodeFunc(decodeBuf, CI_MAX_ENC_LEN - hdrSize, CmdMsgPtr);
 	msgSize = payloadSize;
-	OS_printf("Decoded msg with size: %u\n", msgSize);
+
 	/* Create new SB msg from deserialized data */
 	CFE_SB_InitMsg(CmdMsgPtr, msgId, msgSize, FALSE);
 	CFE_SB_SetTotalMsgLength(CmdMsgPtr, msgSize);
