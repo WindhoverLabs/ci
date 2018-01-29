@@ -1286,7 +1286,43 @@ void CI_SerializedListenerTaskMain(void)
 			}
 
 			/* Process the cmd */
-			CI_ProcessIngestCmd(CmdMsgPtr, MsgSize);
+			if(MsgSize > 0)
+	        {
+		        /* If number of bytes received less than max */
+		        if (MsgSize <= CI_MAX_CMD_INGEST)
+		        {
+			        /* Verify validity of cmd */
+                    CmdMsgId = CFE_SB_GetMsgId(CmdMsgPtr);
+			        if (CI_ValidateSerialCmd(CmdMsgPtr) == TRUE)
+			        {
+				        /* Check if cmd is for CI and route if so */
+				        if (CI_CMD_MID == CmdMsgId)
+				        {
+					        CI_ProcessNewAppCmds(CmdMsgPtr);
+				        }
+				        else
+				        {
+					        /* Verify cmd is authorized */
+					        CFE_ES_PerfLogEntry(CI_SOCKET_RCV_PERF_ID);
+					        CI_AppData.HkTlm.IngestMsgCount++;
+					        CFE_SB_SendMsg(CmdMsgPtr);
+					        CFE_ES_PerfLogExit(CI_SOCKET_RCV_PERF_ID);
+				        }
+			        }
+			        else
+			        {
+				        CI_AppData.HkTlm.usCmdErrCnt++;
+				        CFE_EVS_SendEvent (CI_CMD_INVALID_EID, CFE_EVS_ERROR, "Rcvd invalid serial cmd (%i) for msgId (0x%04X)",
+									        CFE_SB_GetCmdCode(CmdMsgPtr), CmdMsgId);
+			        }
+		        }
+		        else
+		        {
+			        CI_AppData.HkTlm.IngestErrorCount++;
+			        CFE_EVS_SendEvent(CI_CMD_INGEST_ERR_EID, CFE_EVS_ERROR,
+							          "Message too long.  Size = %lu", MsgSize);
+		        }
+	        }
 
 			/* Wait before next iteration */
 			OS_TaskDelay(100);
