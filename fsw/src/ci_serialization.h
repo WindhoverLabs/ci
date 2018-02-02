@@ -39,8 +39,8 @@
 #include "ci_private_types.h"
 #include "ci_msg.h"
 
-#include "../../../../tools/nanopb/pb_encode.h"
-#include "../../../../tools/nanopb/pb_decode.h"
+#include "pb_encode.h"
+#include "pb_decode.h"
 #include "ci_reg.pb.h"
 
 /* Serialization Functions */
