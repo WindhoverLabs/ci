@@ -1819,55 +1819,6 @@ void Test_CI_ValidateSerialCmd_No_SecHdr(void)
 }
 
 /**
- * Test CI_ValidateSerialCmd(), Not Cmd Packet
- */
-void Test_CI_ValidateSerialCmd_Not_Cmd(void)
-{
-	boolean		  	retCode = FALSE;
-	CI_NoArgCmd_t 	cmd;
-	uint32  		MsgSize = sizeof(cmd);
-	CFE_SB_MsgPtr_t CmdMsgPtr;
-
-	/* Create CFE_SB_Msg_t */
-	CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
-	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
-
-	/* Set to cause to fail */
-	CCSDS_WR_TYPE(CmdMsgPtr->Hdr, 0);
-
-	/* Execute the function being tested */
-	retCode = CI_ValidateSerialCmd(CmdMsgPtr);
-
-	/* Verify results */
-	UtAssert_True(retCode==FALSE,"Valid = False");
-}
-
-/**
- * Test CI_DeserializeMsg(), Invalid Msg
- */
-void Test_CI_DeserializeMsg_Inv_Msg(void)
-{
-	boolean		  	retCode = FALSE;
-	CI_NoArgCmd_t 	cmd;
-	uint32  		MsgSize = sizeof(cmd);
-	CFE_SB_MsgPtr_t CmdMsgPtr;
-
-	/* Create CFE_SB_Msg_t */
-	CFE_SB_InitMsg(&cmd, CI_CMD_MID, MsgSize, TRUE);
-	CmdMsgPtr = (CFE_SB_MsgPtr_t)&cmd;
-
-	/* Set to cause to fail */
-	CCSDS_WR_TYPE(CmdMsgPtr->Hdr, 0);
-
-	/* Execute the function being tested */
-	MsgSize = CI_DeserializeMsg(CmdMsgPtr);
-
-	/* Verify results */
-	UtAssert_EventSent(CI_CMD_INVALID_EID, CFE_EVS_ERROR, "", "Invalid cmd for deserialization");
-	UtAssert_True(MsgSize==0,"MsgSize = 0");
-}
-
-/**
  * Test CI_DeserializeMsg(), No deserialization func
  */
 void Test_CI_DeserializeMsg_No_Dec_Func(void)
@@ -2148,10 +2099,6 @@ void CI_App_Test_AddTestCases(void)
 				"Test_CI_ValidateSerialCmd_Bad_CCSDS");
     UtTest_Add(Test_CI_ValidateSerialCmd_No_SecHdr, CI_Test_Setup, CI_Test_TearDown,
 				"Test_CI_ValidateSerialCmd_No_SecHdr");
-    UtTest_Add(Test_CI_ValidateSerialCmd_Not_Cmd, CI_Test_Setup, CI_Test_TearDown,
-				"Test_CI_ValidateSerialCmd_Not_Cmd");
-    UtTest_Add(Test_CI_DeserializeMsg_Inv_Msg, CI_Test_Setup, CI_Test_TearDown,
-				"Test_CI_DeserializeMsg_Inv_Msg");
     UtTest_Add(Test_CI_DeserializeMsg_No_Dec_Func, CI_Test_Setup, CI_Test_TearDown,
 				"Test_CI_DeserializeMsg_No_Dec_Func");
     UtTest_Add(Test_CI_DeserializeMsg_Nominal, CI_Test_Setup, CI_Test_TearDown,
