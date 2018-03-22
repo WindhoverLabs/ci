@@ -898,12 +898,6 @@ boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr, uint32 MsgSize)
 		goto CI_ValidateCmd_Exit_Tag;
 	}
 
-	/* Verify packet type is cmd */
-	if (CCSDS_RD_TYPE(MsgPtr->Hdr) != CCSDS_CMD)
-	{
-		goto CI_ValidateCmd_Exit_Tag;
-	}
-
 	/* Verify length */
 	usMsgLen = CFE_SB_GetTotalMsgLength(MsgPtr);
 	if (usMsgLen != MsgSize)
@@ -911,22 +905,25 @@ boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr, uint32 MsgSize)
 		goto CI_ValidateCmd_Exit_Tag;
 	}
 
-	/* Verify valid checksum */
-	cmdPkt = (CCSDS_CmdPkt_t *)MsgPtr;
-	if (CCSDS_RD_CHECKSUM(cmdPkt->SecHdr) != 0)
+	/* Verify valid checksum if command packet */
+	if (CCSDS_RD_TYPE(MsgPtr->Hdr) != CCSDS_TLM)
 	{
-		if (CFE_SB_ValidateChecksum((CFE_SB_MsgPtr_t)MsgPtr) != TRUE)
+		cmdPkt = (CCSDS_CmdPkt_t *)MsgPtr;
+		if (CCSDS_RD_CHECKSUM(cmdPkt->SecHdr) != 0)
 		{
-			goto CI_ValidateCmd_Exit_Tag;
+			if (CFE_SB_ValidateChecksum((CFE_SB_MsgPtr_t)MsgPtr) != TRUE)
+			{
+				goto CI_ValidateCmd_Exit_Tag;
+			}
 		}
-	}
-	else
-	{
-		/* If no checksum present check the CI_CHECKSUM_REQUIRED
-		 * macro defined in the mission config */
-		if (CI_CHECKSUM_REQUIRED == 1)
+		else
 		{
-			goto CI_ValidateCmd_Exit_Tag;
+			/* If no checksum present check the CI_CHECKSUM_REQUIRED
+			 * macro defined in the mission config */
+			if (CI_CHECKSUM_REQUIRED == 1)
+			{
+				goto CI_ValidateCmd_Exit_Tag;
+			}
 		}
 	}
 
@@ -1022,12 +1019,6 @@ boolean CI_ValidateSerialCmd(CFE_SB_Msg_t* MsgPtr)
 	if (CCSDS_RD_SHDR(MsgPtr->Hdr) == 0)
 	{
 		goto CI_ValidateSerialCmd_Exit_Tag;
-	}
-
-	/* Verify packet type is cmd */
-	if (CCSDS_RD_TYPE(MsgPtr->Hdr) != CCSDS_CMD)
-	{
-		//goto CI_ValidateSerialCmd_Exit_Tag; // TODO: commenting to allow sending serialized tlm
 	}
 
 	bResult = TRUE;

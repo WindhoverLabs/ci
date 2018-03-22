@@ -703,7 +703,7 @@ void Test_CI_ValidateCmd_No_SecHdr(void)
 }
 
 /**
- * Test CI_ValidateCmd(), Not Cmd Packet
+ * Test CI_ValidateCmd(), Telemetry Packet
  */
 void Test_CI_ValidateCmd_Not_Cmd(void)
 {
@@ -723,7 +723,7 @@ void Test_CI_ValidateCmd_Not_Cmd(void)
 	retCode = CI_ValidateCmd(CmdMsgPtr, MsgSize);
 
 	/* Verify results */
-	UtAssert_True(retCode==FALSE,"Valid = False");
+	UtAssert_True(retCode==TRUE,"Valid = True");
 }
 
 /**
