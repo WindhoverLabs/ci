@@ -31,10 +31,6 @@
 *
 *****************************************************************************/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "../../../pblib/fsw/public_inc/pb_lib.h"
 #include "ci_serialization.h"
 
