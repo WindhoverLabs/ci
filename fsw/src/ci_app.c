@@ -1115,7 +1115,7 @@ int32 CI_InitListenerTask(void)
 								   NULL,
 								   CI_LISTENER_TASK_STACK_SIZE,
 								   CI_LISTENER_TASK_PRIORITY,
-								   0);
+								   CI_LISTENER_TASK_FLAGS);
 
 	if (Status != CFE_SUCCESS)
 	{
@@ -1128,7 +1128,7 @@ int32 CI_InitListenerTask(void)
 									NULL,
 									CI_SERIAL_LISTENER_TASK_STACK_SIZE,
 									CI_SERIAL_LISTENER_TASK_PRIORITY,
-									0);
+									CI_SERIAL_LISTENER_TASK_FLAGS);
 
 	if (Status != CFE_SUCCESS)
 	{
