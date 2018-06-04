@@ -91,7 +91,7 @@ WARN_LOGFILE           =
 #---------------------------------------------------------------------------
 # configuration options related to the input files
 #---------------------------------------------------------------------------
-INPUT                  = @APP_DEFINITION_DIR@/../../docs/dox_src/users_guide/cfs_to.dox
+INPUT                  = @APP_DEFINITION_DIR@/../../docs/dox_src/users_guide/cfs_ci.dox
 INPUT                 += @DEFINITION_SOURCES@
 INPUT                 += @CONFIG_SOURCES@
 
