@@ -31,7 +31,7 @@
 #
 #############################################################################
 
-add_airliner_app_def(ci
+buildliner_add_app_def(ci
     FILE CI
     SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_app.c
@@ -59,7 +59,7 @@ add_airliner_app_def(ci
 
 
 
-add_airliner_app_unit_test(ci-ut
+buildliner_add_app_def(ci-ut
     UTASSERT
     NO_HELGRIND
     NO_MASSIF
