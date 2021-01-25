@@ -42,7 +42,6 @@
 ** Includes
 *************************************************************************/
 #include "cfe.h"
-#include "ci_app.h"
 
 #ifdef __cplusplus
 extern "C" {

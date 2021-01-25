@@ -42,8 +42,6 @@
 ** Includes
 *************************************************************************/
 #include "cfe.h"
-#include "pb_lib.h"
-
 #include "ci_platform_cfg.h"
 #include "ci_mission_cfg.h"
 #include "ci_private_ids.h"
@@ -53,7 +51,6 @@
 #include "ci_msg.h"
 #include "ci_events.h"
 #include "ci_config_utils.h"
-#include "ci_cds_utils.h"
 #include "ci_tbldefs.h"
 #include "ci_custom.h"
 
@@ -64,28 +61,27 @@ extern "C" {
 /************************************************************************
 ** Local Defines
 *************************************************************************/
-#define CI_MAX_CMD_INGEST           		(CFE_SB_MAX_SB_MSG_SIZE)
-#define CI_LISTENER_TASK_NAME  				"CI_LISTENER"
-#define CI_LISTENER_TASK_STACK_SIZE			160000
-#define CI_LISTENER_TASK_PRIORITY			109
-#define CI_SERIAL_LISTENER_TASK_NAME  		"CI_SERIAL_LISTENER"
-#define CI_SERIAL_LISTENER_TASK_STACK_SIZE	160000
-#define CI_SERIAL_LISTENER_TASK_PRIORITY	112
-#define CI_CFG_TBL_MUTEX_NAME 				"CI_CFG_TBL_MUTEX"
-#define CI_TIME_TBL_MUTEX_NAME 				"CI_TIME_TBL_MUTEX"
+#define CI_INVALID_VALUE                    (CI_MAX_RGST_CMDS + 1)
 
 /************************************************************************
 ** Local Structure Definitions
 *************************************************************************/
 
 /**
-**  \brief CI Operational Data Structure
+**  \brief CI Ingest Mode
+**
+**  \note The various modes in which CI can run in. Optimistic means that 
+**        CI will allow unregistered (unknown) commands it ingests that
+**        are valid to be published to the CFE SB. Commands that are 
+**        registered will adhere to the stepping they are registered with.
+**        Pessimistic mode will reject any command ingested that is not 
+**        registered.
 */
 typedef enum
 {
-	BHV_OPTIMISTIC,
-	BHV_PESSIMISTIC,
-} CI_BEHAVIOR;
+	CI_BHV_OPTIMISTIC  = 0,
+	CI_BHV_PESSIMISTIC = 1,
+} CI_INGEST_BEHAVIOR;
 
 /**
 **  \brief CI Operational Data Structure
@@ -100,9 +96,6 @@ typedef struct
 
     /** \brief Command Pipe ID */
     CFE_SB_PipeId_t  CmdPipeId;
-
-    /** \brief Data Pipe ID */
-    CFE_SB_PipeId_t  DataPipeId;
 
     /* Task-related */
 
@@ -122,22 +115,6 @@ typedef struct
 
     /** \brief Timeout Table */
     CI_TimeoutTblEntry_t  TimeoutTbl;
-
-    /* Critical Data Storage (CDS) table-related */
-
-    /** \brief CDS Table Handle */
-    CFE_ES_CDSHandle_t  CdsTblHdl;
-
-    /** \brief CDS Table data */
-    CI_CdsTbl_t  CdsTbl;
-
-    /* Inputs/Outputs */
-
-    /** \brief Input Data from I/O or other apps */
-    CI_InData_t   InData;
-
-    /** \brief Output Data published at the end of cycle */
-    CI_OutData_t  OutData;
 
     /** \brief Housekeeping Telemetry for downlink */
     CI_HkTlm_t  HkTlm;
@@ -162,9 +139,6 @@ typedef struct
 
     /** \brief Run flag for ingest loop */
     boolean			IngestActive;
-
-    /** \brief Behavior for unknown commands to CI */
-    CI_BEHAVIOR		IngestBehavior;
 
 } CI_AppData_t;
 
@@ -317,20 +291,6 @@ void  CI_CleanupCallback(void);
 *************************************************************************/
 int32  CI_RcvMsg(int32 iBlocking);
 
-
-/************************************************************************/
-/** \brief Command Ingest Task incoming data processing
-**
-**  \par Description
-**       This function processes incoming data subscribed
-**       by CI application
-**
-**  \par Assumptions, External Events, and Notes:
-**       None
-**
-*************************************************************************/
-void  CI_ProcessNewData(void);
-
 /************************************************************************/
 /** \brief Command Ingest Task incoming command processing
 **
@@ -360,7 +320,6 @@ void  CI_ProcessNewCmds(void);
 *************************************************************************/
 void  CI_ProcessNewAppCmds(CFE_SB_Msg_t* MsgPtr);
 
-
 /************************************************************************/
 /** \brief Sends CI housekeeping message
 **
@@ -372,18 +331,6 @@ void  CI_ProcessNewAppCmds(CFE_SB_Msg_t* MsgPtr);
 **
 *************************************************************************/
 void  CI_ReportHousekeeping(void);
-
-/************************************************************************/
-/** \brief Sends CI output data
-**
-**  \par Description
-**       This function publishes the CI application output data.
-**
-**  \par Assumptions, External Events, and Notes:
-**       None
-**
-*************************************************************************/
-void  CI_SendOutData(void);
 
 /************************************************************************/
 /** \brief Verify Command Length
@@ -403,7 +350,7 @@ void  CI_SendOutData(void);
 **  \endreturns
 **
 *************************************************************************/
-boolean  CI_VerifyCmdLength(CFE_SB_Msg_t* MsgPtr, uint16 usExpectedLen);
+boolean  CI_VerifyCmdLength(const CFE_SB_Msg_t* MsgPtr, uint16 usExpectedLen);
 
 /************************************************************************/
 /** \brief Init Listener Task
@@ -435,34 +382,22 @@ int32  CI_InitListenerTask(void);
 *************************************************************************/
 void CI_ListenerTaskMain(void);
 
-/************************************************************************/
-/** \brief Serialized Listener Task Main
-**
-**  \par Description
-**       This function opens a socket and ingests all serialized cmds for
-**       CI to process before publishing them to the software bus.
-**
-**  \par Assumptions, External Events, and Notes:
-**       None
-**
-*************************************************************************/
-void CI_SerializedListenerTaskMain(void);
-
 
 /************************************************************************/
 /** \brief Process Ingest Command
 **
 **  \par Description
 **       This function contains the shared logic for processing a cmd
-**       used by both the serialized and nonserialized ingest loops.
+**       used by both the ingest loop.
 **
 **  \par Assumptions, External Events, and Notes:
 **       None
 **
 **  \param [in]   CmdMsgPtr     A #CFE_SB_Msg_t pointer that
 **                              references the software bus message
-**  \param [in]   MsgSize 		The size of the message from the
-**  							ingest buffer
+**  \param [in]   MsgSize 	The size of the message from the
+**  				ingest buffer. A size of zero indicates
+**  				"no message to process".
 **
 *************************************************************************/
 void CI_ProcessIngestCmd(CFE_SB_MsgPtr_t CmdMsgPtr, uint32 MsgSize);
@@ -486,26 +421,7 @@ void CI_ProcessIngestCmd(CFE_SB_MsgPtr_t CmdMsgPtr, uint32 MsgSize);
 **  \endreturns
 **
 *************************************************************************/
-boolean CI_ValidateCmd(CFE_SB_Msg_t* MsgPtr, uint32 MsgSize);
-
-/************************************************************************/
-/** \brief Validate Serialized Command
-**
-**  \par Description
-**       This function validates several parameters of a serialized command.
-**
-**  \par Assumptions, External Events, and Notes:
-**       None
-**
-**  \param [in]   MsgPtr        A #CFE_SB_Msg_t pointer that
-**                              references the software bus message
-**
-**  \returns
-**  TRUE if the command is valid, FALSE if it is not.
-**  \endreturns
-**
-*************************************************************************/
-boolean CI_ValidateSerialCmd(CFE_SB_Msg_t* MsgPtr);
+boolean CI_ValidateCmd(const CFE_SB_Msg_t* MsgPtr, uint32 MsgSize);
 
 
 /************************************************************************/
@@ -525,7 +441,7 @@ boolean CI_ValidateSerialCmd(CFE_SB_Msg_t* MsgPtr);
 **  \endreturns
 **
 *************************************************************************/
-boolean CI_GetCmdAuthorized(CFE_SB_Msg_t* MsgPtr);
+boolean CI_GetCmdAuthorized(const CFE_SB_Msg_t* MsgPtr);
 
 /************************************************************************/
 /** \brief Log Command
@@ -540,7 +456,7 @@ boolean CI_GetCmdAuthorized(CFE_SB_Msg_t* MsgPtr);
 **                              references the software bus message
 **
 *************************************************************************/
-void CI_LogCmd(CFE_SB_Msg_t* MsgPtr);
+void CI_LogCmd(const CFE_SB_Msg_t* MsgPtr);
 
 /************************************************************************/
 /** \brief Process Timeouts
@@ -569,7 +485,7 @@ void CI_ProcessTimeouts(void);
 **                              references the software bus message
 **
 *************************************************************************/
-void CI_CmdAuthorize(CFE_SB_Msg_t* MsgPtr);
+void CI_CmdAuthorize(const CFE_SB_Msg_t* MsgPtr);
 
 /************************************************************************/
 /** \brief Command Deauthorize
@@ -584,7 +500,7 @@ void CI_CmdAuthorize(CFE_SB_Msg_t* MsgPtr);
 **                              references the software bus message
 **
 *************************************************************************/
-void CI_CmdDeauthorize(CFE_SB_Msg_t* MsgPtr);
+void CI_CmdDeauthorize(const CFE_SB_Msg_t* MsgPtr);
 
 /************************************************************************/
 /** \brief Get Registered Command
@@ -596,39 +512,20 @@ void CI_CmdDeauthorize(CFE_SB_Msg_t* MsgPtr);
 **  \par Assumptions, External Events, and Notes:
 **       None
 **
-**  \param [in]   msgID        A #CFE_SB_MsgId_t that specifies the
-**  						   message ID if of the command
+**  \param [in]      msgID        A #CFE_SB_MsgId_t that specifies the
+**  						      message ID if of the command
 **
-**  \param [in]   cmdCode      A #uint16 that specifies the command code
+**  \param [in]      cmdCode      A #uint16 that specifies the command code
+**
+**  \param [in/out]  i            The index of the registered command in the
+**                                table
 **
 **  \returns
 **  #CI_CmdData_t if the command is registerd, NULL if it is not.
 **  \endreturns
 **
 *************************************************************************/
-CI_CmdData_t *CI_GetRegisterdCmd(CFE_SB_MsgId_t msgID, uint16 cmdCode);
-
-/************************************************************************/
-/** \brief Get Registered Command Index
-**
-**  \par Description
-**       This function searches for a cmd and returns an index
-**       of the config table containing that cmd
-**
-**  \par Assumptions, External Events, and Notes:
-**       None
-**
-**  \param [in]   msgID        A #CFE_SB_MsgId_t that specifies the
-**  						   message ID if of the command
-**
-**  \param [in]   cmdCode      A #uint16 that specifies the command code
-**
-**  \returns
-**  #uint32 if the command is registerd, -1 if it is not.
-**  \endreturns
-**
-*************************************************************************/
-uint32 CI_GetRegisterdCmdIdx(CFE_SB_MsgId_t msgID, uint16 cmdCode);
+CI_CmdData_t *CI_GetRegisterdCmd(CFE_SB_MsgId_t msgID, uint16 cmdCode, uint32* tblIdx);
 
 /************************************************************************/
 /** \brief Register Command
@@ -643,7 +540,7 @@ uint32 CI_GetRegisterdCmdIdx(CFE_SB_MsgId_t msgID, uint16 cmdCode);
 **                              references the software bus message
 **
 *************************************************************************/
-void CI_CmdRegister(CFE_SB_Msg_t* MsgPtr);
+void CI_CmdRegister(const CFE_SB_Msg_t* MsgPtr);
 
 /************************************************************************/
 /** \brief Deregister Command
@@ -658,7 +555,7 @@ void CI_CmdRegister(CFE_SB_Msg_t* MsgPtr);
 **                              references the software bus message
 **
 *************************************************************************/
-void CI_CmdDeregister(CFE_SB_Msg_t* MsgPtr);
+void CI_CmdDeregister(const CFE_SB_Msg_t* MsgPtr);
 
 /************************************************************************/
 /** \brief Update Command Register
@@ -673,27 +570,7 @@ void CI_CmdDeregister(CFE_SB_Msg_t* MsgPtr);
 **                              references the software bus message
 **
 *************************************************************************/
-void CI_UpdateCmdReg(CFE_SB_Msg_t* MsgPtr);
-
-/************************************************************************/
-/** \brief Deserialize Message
-**
-**  \par Description
-**       This function receives a SB message pointer that has a payload
-**       serialized with protobuf and deserializes that payload to return
-**       a valid message pointer CFS can understand.
-**
-**  \par Assumptions, External Events, and Notes:
-**       None
-**
-**  \param [in]   MsgPtr        A #CFE_SB_Msg_t pointer that
-**                              references the software bus message
-**
-**  \returns
-**  #uint32 The size of the new #CFE_SB_Msg_t
-**  \endreturns
-*************************************************************************/
-uint32 CI_DeserializeMsg(CFE_SB_MsgPtr_t CmdMsgPtr);
+void CI_UpdateCmdReg(const CFE_SB_Msg_t* MsgPtr);
 
 #ifdef __cplusplus
 }

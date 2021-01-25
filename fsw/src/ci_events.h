@@ -34,9 +34,6 @@
 #ifndef CI_EVENTS_H
 #define CI_EVENTS_H
 
-#include <termio.h>
-#include <stdlib.h>
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -56,18 +53,6 @@ typedef enum {
 /** \brief <tt> Value of zero is reserved, and should not be used. </tt> */
     CI_RESERVED_EID = 0,  /* Do not use this event ID */
 
-/** \brief <tt> 'CI - ' </tt>
-**  \event <tt> 'CI - ' </tt>
-**  
-**  \par Type: INFORMATION
-**
-**  \par Cause:
-**
-**  TODO fill this in
-**
-*/
-    CI_INF_EID,
-
 /** \brief <tt> 'CI Initialized. Version \%d.\%d.\%d' </tt>
 **  \event <tt> 'CI Initialized. Version \%d.\%d.\%d' </tt>
 **  
@@ -82,7 +67,7 @@ typedef enum {
 **  The second \c %d field contains the Application's Minor Version Number
 **  The third \c %d field contains the Application's Revision Number
 */
-    CI_INIT_INF_EID,
+    CI_INIT_INF_EID = 1,
 
 /** \brief <tt> 'CI - ' </tt>
 **  \event <tt> 'CI - ' </tt>
@@ -94,19 +79,7 @@ typedef enum {
 **  This message is generated when a table is initialized.
 **
 */
-    CI_CONFIG_TABLE_INF_EID,
-
-/** \brief <tt> 'CI - ' </tt>
-**  \event <tt> 'CI - ' </tt>
-**  
-**  \par Type: INFORMATION
-**
-**  \par Cause:
-**
-**  This event message is issued when TBD
-**
-*/
-    CI_CDS_INF_EID,
+    CI_CONFIG_TABLE_INF_EID = 2,
 
 /** \brief <tt> 'CI - Recvd $x cmd (%us)' </tt>
 **  \event <tt> 'CI - Recvd $x cmd (%us)' </tt>
@@ -119,7 +92,7 @@ typedef enum {
 **  received and processed a command.
 **
 */
-    CI_CMD_INF_EID,
+    CI_CMD_INF_EID = 3,
 
 /** \brief <tt> 'CI - ' </tt>
 **  \event <tt> 'CI - ' </tt>
@@ -131,7 +104,7 @@ typedef enum {
 **  This event message is issued when TBD
 **
 */
-    CI_ERR_EID,
+    CI_ERR_EID = 4,
 
 /** \brief <tt> 'CI - ' </tt>
 **  \event <tt> 'CI - ' </tt>
@@ -144,7 +117,7 @@ typedef enum {
 **  had an error in initialization.
 **
 */
-    CI_INIT_ERR_EID,
+    CI_INIT_ERR_EID = 5,
 
 /** \brief <tt> 'CI - ' </tt>
 **  \event <tt> 'CI - ' </tt>
@@ -157,7 +130,7 @@ typedef enum {
 **  had an error with the configuration table.
 **
 */
-    CI_CONFIG_TABLE_ERR_EID,
+    CI_CONFIG_TABLE_ERR_EID = 6,
 
 /** \brief <tt> 'CI - ' </tt>
 **  \event <tt> 'CI - ' </tt>
@@ -170,20 +143,7 @@ typedef enum {
 **  had an error with the timeout table.
 **
 */
-	CI_TIMEOUT_TABLE_ERR_EID,
-
-/** \brief <tt> 'CI - ' </tt>
-**  \event <tt> 'CI - ' </tt>
-**  
-**  \par Type: ERROR
-**
-**  \par Cause:
-**
-**  This event message is issued when the CFS CI Task has
-**  had an error in CDS.
-**
-*/
-    CI_CDS_ERR_EID,
+	CI_TIMEOUT_TABLE_ERR_EID = 7,
 
 /** \brief <tt> 'CI - $commandError' </tt>
 **  \event <tt> 'CI - $commandError' </tt>
@@ -196,7 +156,7 @@ typedef enum {
 **  had an error processing a command.
 **
 */
-    CI_CMD_ERR_EID,
+    CI_CMD_ERR_EID = 8,
 
 /** \brief <tt> 'CI: SB pipe read error (0x%08X), app will exit' </tt>
 **  \event <tt> 'CI: SB pipe read error (0x%08X), app will exit' </tt>
@@ -209,7 +169,7 @@ typedef enum {
 **  had an error reading from a pipe.
 **
 */
-    CI_PIPE_ERR_EID,
+    CI_PIPE_ERR_EID = 9,
 
 /** \brief <tt> 'CI - Recvd invalid $type msgId (0x%04x)' </tt>
 **  \event <tt> 'CI - Recvd invalid $type msgId (0x%04x)' </tt>
@@ -222,7 +182,7 @@ typedef enum {
 **  received an invalid message ID.
 **
 */
-    CI_MSGID_ERR_EID,
+    CI_MSGID_ERR_EID = 10,
 
 /** \brief <tt> 'CI - Rcvd invalid msgLen: msgId=0x%08X, cmdCode=%d, msgLen=%d, expectedLen=%d" </tt>
 **  \event <tt> 'CI - Rcvd invalid msgLen: msgId=0x%08X, cmdCode=%d, msgLen=%d, expectedLen=%d" </tt>
@@ -235,7 +195,7 @@ typedef enum {
 **  received a message with a bad length.
 **
 */
-    CI_MSGLEN_ERR_EID,
+    CI_MSGLEN_ERR_EID = 11,
 
 /** \brief <tt> 'CI - Listener child task failed.  CFE_ES_CreateChildTask returned: 0x%08X' </tt>
 **  \event <tt> 'CI - Listener child task failed.  CFE_ES_CreateChildTask returned: 0x%08X' </tt>
@@ -248,7 +208,7 @@ typedef enum {
 **  create its child listener task.
 **
 */
-    CI_LISTENER_CREATE_CHDTASK_ERR_EID,
+    CI_LISTENER_CREATE_CHDTASK_ERR_EID = 12,
 
 /** \brief <tt> 'CI - L%d, cmd %0x %0x dropped, too long' </tt>
 **  \event <tt> 'CI - L%d, cmd %0x %0x dropped, too long' </tt>
@@ -261,7 +221,7 @@ typedef enum {
 **  received a msg greater than the max allowed size.
 **
 */
-    CI_CMD_INGEST_ERR_EID,
+    CI_CMD_INGEST_ERR_EID = 13,
 
 /** \brief <tt> 'CI - Bind socket failed = %d' </tt>
 **  \event <tt> 'CI - Bind socket failed = %d' </tt>
@@ -274,7 +234,7 @@ typedef enum {
 **  encounters an error connecting to a socket.
 **
 */
-	CI_SOCKET_ERR_EID,
+	CI_SOCKET_ERR_EID = 14,
 
 /** \brief <tt> 'CI - UDP command input enabled on port %u.' </tt>
 **  \event <tt> 'CI - UDP command input enabled on port %u.' </tt>
@@ -287,7 +247,7 @@ typedef enum {
 **  successfully binds to a socket.
 **
 */
-	CI_ENA_INF_EID,
+	CI_ENA_INF_EID = 15,
 
 /** \brief <tt> 'CI - Rcvd invalid cmd' </tt>
 **  \event <tt> 'CI - Rcvd invalid cmd' </tt>
@@ -300,7 +260,7 @@ typedef enum {
 **  encountered an issue with a received command.
 **
 */
-	CI_CMD_INVALID_EID,
+	CI_CMD_INVALID_EID = 16,
 
 /** \brief <tt> 'CI - Cmd not authorized' </tt>
 **  \event <tt> 'CI - Cmd not authorized' </tt>
@@ -313,7 +273,7 @@ typedef enum {
 **  received is not authorized to execute.
 **
 */
-	CI_CMD_UNAUTHORIZED_EID,
+	CI_CMD_UNAUTHORIZED_EID = 17,
 
 /** \brief <tt> 'CI - Cmd authorization timeout' </tt>
 **  \event <tt> 'CI - Cmd authorization timeout' </tt>
@@ -326,7 +286,7 @@ typedef enum {
 **  command has timed out.
 **
 */
-	CI_CMD_AUTH_TIMEOUT_EID,
+	CI_CMD_AUTH_TIMEOUT_EID = 18,
 
 /** \brief <tt> 'CI - Cmd not registered' </tt>
 **  \event <tt> 'CI - Cmd not registered' </tt>
@@ -339,7 +299,7 @@ typedef enum {
 **  authorize a command that is not registered.
 **
 */
-	CI_CMD_AUTH_NOT_REG_EID,
+	CI_CMD_AUTH_NOT_REG_EID = 19,
 
 /** \brief <tt> 'CI - Cmd not 2-step' </tt>
 **  \event <tt> 'CI - Cmd not 2-step' </tt>
@@ -352,7 +312,7 @@ typedef enum {
 **  authorize a command that is not 2-step.
 **
 */
-	CI_CMD_AUTH_INV_MODE_EID,
+	CI_CMD_AUTH_INV_MODE_EID = 20,
 
 /** \brief <tt> 'CI - Cmd already authorized' </tt>
 **  \event <tt> 'CI - Cmd already authorized' </tt>
@@ -365,7 +325,7 @@ typedef enum {
 **  authorize a command that is already authorized.
 **
 */
-	CI_CMD_AUTH_INV_STATE_EID,
+	CI_CMD_AUTH_INV_STATE_EID = 21,
 
 /** \brief <tt> 'CI - Cmd authorized' </tt>
 **  \event <tt> 'CI - Cmd authorized' </tt>
@@ -377,7 +337,7 @@ typedef enum {
 **  This event message is issued when a command is authorized.
 **
 */
-	CI_CMD_AUTHORIZED_EID,
+	CI_CMD_AUTHORIZED_EID = 22,
 
 /** \brief <tt> 'CI - Cmd not registered' </tt>
 **  \event <tt> 'CI - Cmd not registered' </tt>
@@ -390,7 +350,7 @@ typedef enum {
 **  is not registered.
 **
 */
-	CI_CMD_DEAUTH_NOT_REG_EID,
+	CI_CMD_DEAUTH_NOT_REG_EID = 23,
 
 /** \brief <tt> 'CI - Cmd not 2-step' </tt>
 **  \event <tt> 'CI - Cmd not 2-step' </tt>
@@ -403,7 +363,7 @@ typedef enum {
 **  deauthorize a command that is not 2-step.
 **
 */
-	CI_CMD_DEAUTH_INV_MODE_EID,
+	CI_CMD_DEAUTH_INV_MODE_EID = 24,
 
 /** \brief <tt> 'CI - Cmd not authorized' </tt>
 **  \event <tt> 'CI - Cmd not authorized' </tt>
@@ -416,7 +376,7 @@ typedef enum {
 **  deauthorize a command that is not authorized.
 **
 */
-	CI_CMD_DEAUTH_INV_STATE_EID,
+	CI_CMD_DEAUTH_INV_STATE_EID = 25,
 
 /** \brief <tt> 'CI - Cmd deauthorized' </tt>
 **  \event <tt> 'CI - Cmd deauthorized' </tt>
@@ -428,7 +388,7 @@ typedef enum {
 **  This event message is issued when a command is deauthorized.
 **
 */
-	CI_CMD_DEAUTHORIZED_EID,
+	CI_CMD_DEAUTHORIZED_EID = 26,
 
 /** \brief <tt> 'CI - Cmd registered' </tt>
 **  \event <tt> 'CI - Cmd registered' </tt>
@@ -440,7 +400,7 @@ typedef enum {
 **  This event message is issued when a command is registered.
 **
 */
-	CI_CMD_REGISTERED_EID,
+	CI_CMD_REGISTERED_EID = 27,
 
 /** \brief <tt> 'CI - Cmd already registered' </tt>
 **  \event <tt> 'CI - Cmd already registered' </tt>
@@ -453,7 +413,7 @@ typedef enum {
 **  a command that is already registered.
 **
 */
-	CI_CMD_ALREADY_REGISTERED_EID,
+	CI_CMD_ALREADY_REGISTERED_EID = 28,
 
 /** \brief <tt> 'CI - Cmd deregistered' </tt>
 **  \event <tt> 'CI - Cmd deregistered' </tt>
@@ -465,7 +425,7 @@ typedef enum {
 **  This event message is issued when a command is deregistered.
 **
 */
-	CI_CMD_DEREGISTERED_EID,
+	CI_CMD_DEREGISTERED_EID = 29,
 
 /** \brief <tt> 'CI - Cmd not registered' </tt>
 **  \event <tt> 'CI - Cmd not registered' </tt>
@@ -478,7 +438,7 @@ typedef enum {
 **  a command that is not registered.
 **
 */
-	CI_CMD_NOT_REGISTERED_EID,
+	CI_CMD_NOT_REGISTERED_EID = 30,
 
 /** \brief <tt> 'CI - Unable to register cmd' </tt>
 **  \event <tt> 'CI - Unable to register cmd' </tt>
@@ -491,7 +451,7 @@ typedef enum {
 **  a command and an error is encountered.
 **
 */
-	CI_CMD_REG_ERR_EID,
+	CI_CMD_REG_ERR_EID = 31,
 
 /** \brief <tt> 'CI - Invalid state of command to update' </tt>
 **  \event <tt> 'CI - Invalid state of command to update' </tt>
@@ -503,7 +463,7 @@ typedef enum {
 **  This event message is issued when attempting to update
 **  a 2-step registered command while it is authorized
 */
-	CI_CMD_UPDT_REG_INVLD_STATE_EID,
+	CI_CMD_UPDT_REG_INVLD_STATE_EID = 32,
 
 /** \brief <tt> 'CI - Cmd updated' </tt>
 **  \event <tt> 'CI - Cmd updated' </tt>
@@ -515,23 +475,10 @@ typedef enum {
 **  This event message is issued when a command registration is updated.
 **
 */
-	CI_CMD_UPDATE_REG_EID,
-
-/** \brief <tt> 'CI - Unable to find deserialization function' </tt>
-**  \event <tt> 'CI - Unable to find deserialization function' </tt>
-**
-**  \par Type: ERROR
-**
-**  \par Cause:
-**
-**  This event message is issued when CI receives a message
-**  that requires deserialization and it is unable to locate
-**  that message's decoding function
-*/
-	CI_NO_DECODE_FUNC_EID,
+	CI_CMD_UPDATE_REG_EID = 33,
 
 /** \brief <tt> This is a count of all the app events and should not be used. </tt> */
-    CI_EVT_CNT
+    CI_EVT_CNT = 35
 } CI_EventIds_t;
 
 

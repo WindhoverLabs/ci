@@ -42,6 +42,7 @@
 ** Includes
 *************************************************************************/
 #include "cfe.h"
+#include "ci_private_types.h"
 
 #ifdef __cplusplus
 extern "C" {

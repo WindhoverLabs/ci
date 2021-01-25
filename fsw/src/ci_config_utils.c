@@ -39,6 +39,7 @@
 ** Includes
 *************************************************************************/
 #include "ci_config_utils.h"
+#include "ci_app.h"
 
 /************************************************************************
 ** Local Defines
@@ -75,15 +76,14 @@ extern CI_AppData_t  CI_AppData;
 /* Initialize Config Table                                         */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-int32 CI_InitTbls()
+int32 CI_InitTbls(void)
 {
     int32  iStatus=0;
 
     /* Register Config table */
     iStatus = CFE_TBL_Register(&CI_AppData.ConfigTblHdl,
                                CI_CONFIG_TABLENAME,
-                               (sizeof(CI_ConfigTblEntry_t) * CI_CONFIG_TABLE_MAX_ENTRIES),
+                               sizeof(CI_ConfigTblEntry_t),
                                CFE_TBL_OPT_DEFAULT,
                                CI_ValidateConfigTbl);
     if (iStatus != CFE_SUCCESS)
@@ -97,7 +97,7 @@ int32 CI_InitTbls()
     /* Register Timeout dump table */
 	iStatus = CFE_TBL_Register(&CI_AppData.TimeoutTblHdl,
 							   CI_TIMEOUT_TABLENAME,
-							   (sizeof(CI_TimeoutTblEntry_t) * CI_CONFIG_TABLE_MAX_ENTRIES),
+							   sizeof(CI_TimeoutTblEntry_t),
 							   CFE_TBL_OPT_USR_DEF_ADDR,
 							   0);
 	if (iStatus != CFE_SUCCESS)
@@ -144,10 +144,10 @@ CI_InitTbls_Exit_Tag:
 /* Validate Config Table                                           */
 /*                                                                 */
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 int32 CI_ValidateConfigTbl(void* ConfigTblPtr)
 {
-    int32  iStatus=0;
+    int32  iStatus = 0;
+    uint32 i = 0;
     CI_ConfigTblEntry_t* CI_ConfigTblPtr = (CI_ConfigTblEntry_t*)(ConfigTblPtr);
 
     if (ConfigTblPtr == NULL)
@@ -156,52 +156,32 @@ int32 CI_ValidateConfigTbl(void* ConfigTblPtr)
         goto CI_ValidateConfigTbl_Exit_Tag;
     }
 
-    /* TODO:  Add code to validate new data values here.
-    **
-    ** Examples:
-    ** if (CI_ConfigTblPtr->iParam <= 16) {
-    **   (void) CFE_EVS_SendEvent(CI_CONFIG_TABLE_INF_EID, CFE_EVS_ERROR,
-     *                         "Invalid value for Config parameter sParam (%d)",
-    **                         CI_ConfigTblPtr->iParam);
-    ** }
-    **/
+    /* Perform simple validation on registered command states */
+    for(i = 0; i < CI_MAX_RGST_CMDS; ++i)
+    {
+        /* If message is non-zero perform validation. Skip otherwise. */
+        if(CI_ConfigTblPtr->cmds[i].mid != 0)
+        {
+            /* Check if stepping is valid */
+            if(CI_ConfigTblPtr->cmds[i].step != STEP_1 && 
+               CI_ConfigTblPtr->cmds[i].step != STEP_2)
+            {
+                iStatus = -1;
+                break;
+            }
 
+            /* Check if state is valid */
+            if(CI_ConfigTblPtr->cmds[i].state != UNAUTHORIZED && 
+               CI_ConfigTblPtr->cmds[i].state != AUTHORIZED)
+            {
+                iStatus = -1;
+                break;
+            }
+        }
+    }
+    
 CI_ValidateConfigTbl_Exit_Tag:
     return (iStatus);
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-/*                                                                 */
-/* Process New Config Table                                        */
-/*                                                                 */
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-void CI_ProcessNewConfigTbl()
-{
-    /* TODO:  Add code to set new Config parameters with new values here.
-    **
-    ** Examples:
-    **
-    **    CI_AppData.latest_sParam = CI_AppData.ConfigTblPtr->sParam;
-    **    CI_AppData.latest_fParam = CI.AppData.ConfigTblPtr->fParam;
-    */
-}
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-/*                                                                 */
-/* Process New Timeout Table                                        */
-/*                                                                 */
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-void CI_ProcessNewTimeoutTbl()
-{
-    /* TODO:  Add code to set new Config parameters with new values here.
-    **
-    ** Examples:
-    **
-    **    CI_AppData.latest_sParam = CI_AppData.ConfigTblPtr->sParam;
-    **    CI_AppData.latest_fParam = CI.AppData.ConfigTblPtr->fParam;
-    */
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -216,9 +196,6 @@ int32 CI_AcquireConfigPointers(void)
 	/*
 	** Release the table
 	*/
-	/* TODO: This return value can indicate success, error, or that the info has been
-	 * updated.  We ignore this return value in favor of checking CFE_TBL_Manage(), but
-	 * be sure this is the behavior you want. */
 	(void) CFE_TBL_ReleaseAddress(CI_AppData.ConfigTblHdl);
 	(void) CFE_TBL_ReleaseAddress(CI_AppData.TimeoutTblHdl);
 
@@ -250,7 +227,6 @@ int32 CI_AcquireConfigPointers(void)
 								 CI_AppData.ConfigTblHdl);
 	if (iStatus == CFE_TBL_INFO_UPDATED)
 	{
-		CI_ProcessNewConfigTbl();
 		iStatus = CFE_SUCCESS;
 	}
 	else if(iStatus != CFE_SUCCESS)
@@ -265,7 +241,6 @@ int32 CI_AcquireConfigPointers(void)
 									 CI_AppData.TimeoutTblHdl);
 	if (iStatus == CFE_TBL_INFO_UPDATED)
 	{
-		CI_ProcessNewTimeoutTbl();
 		iStatus = CFE_SUCCESS;
 	}
 	else if(iStatus != CFE_SUCCESS)

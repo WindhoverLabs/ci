@@ -30,16 +30,12 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 #############################################################################
- 
-set(CI_PROTOBUF_MSGS_DIR ${CMAKE_CURRENT_BINARY_DIR}/msgs/protobuf)
 
 add_airliner_app_def(ci
     FILE CI
     SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_app.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_app.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_cds_utils.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_cds_utils.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_config_utils.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_config_utils.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_custom.h
@@ -47,41 +43,31 @@ add_airliner_app_def(ci
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_msg.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_private_ids.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_private_types.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_symbols.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_tbldefs.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_version.h
-        ${CI_PROTOBUF_MSGS_DIR}/ci_auth.pb.c
-        ${CI_PROTOBUF_MSGS_DIR}/ci_auth.pb.h
-        ${CI_PROTOBUF_MSGS_DIR}/ci_reg.pb.c
-        ${CI_PROTOBUF_MSGS_DIR}/ci_reg.pb.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_serialization.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_serialization.c
    
     INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/
-		${CI_PROTOBUF_MSGS_DIR}
-
-    PROTOBUF_DEFS
-        ${CMAKE_CURRENT_SOURCE_DIR}/../msgs/proto_defs/ci_reg.proto
-        ${CMAKE_CURRENT_SOURCE_DIR}/../msgs/proto_defs/ci_auth.proto
-
-    PROTOBUF_MSGS_DIR        
-        ${CI_PROTOBUF_MSGS_DIR}
         
-    USER_DOCS   ${CMAKE_CURRENT_SOURCE_DIR}/user_doxy.in   
-    DESIGN_DOCS   ${CMAKE_CURRENT_SOURCE_DIR}/detail_doxy.in    
+    DESIGN_DOCS   ${CMAKE_CURRENT_SOURCE_DIR}/detail_doxy.in      
+    
+    REFERENCE_CONFIG
+        ${PROJECT_SOURCE_DIR}/apps/ci/fsw/mission_inc
+        ${PROJECT_SOURCE_DIR}/apps/ci/fsw/platform_inc
 )
 
 
 
 add_airliner_app_unit_test(ci-ut
     UTASSERT
-	NANOPB
+    NO_HELGRIND
+    NO_MASSIF
+
     SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_app.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_app.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../unit_test/ci_mock_custom.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_cds_utils.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_cds_utils.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_config_utils.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_config_utils.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_events.h
@@ -102,26 +88,15 @@ add_airliner_app_unit_test(ci-ut
         ${CMAKE_CURRENT_SOURCE_DIR}/../unit_test/ci_test_utils.c
         ${CMAKE_CURRENT_SOURCE_DIR}/../unit_test/ci_test_utils.h
         ${CMAKE_CURRENT_SOURCE_DIR}/../unit_test/ci_testrunner.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../../../pblib/fsw/src/pb_lib.c
-        ${CI_PROTOBUF_MSGS_DIR}/ci_auth.pb.c
-        ${CI_PROTOBUF_MSGS_DIR}/ci_auth.pb.h
-        ${CI_PROTOBUF_MSGS_DIR}/ci_reg.pb.c
-        ${CI_PROTOBUF_MSGS_DIR}/ci_reg.pb.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_serialization.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/../src/ci_serialization.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../unit_test/ci_wrap_pbl.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/../unit_test/ci_wrap_pbl.h
 
     INCLUDES
         ${CMAKE_CURRENT_SOURCE_DIR}/../src/
-        ${CMAKE_CURRENT_SOURCE_DIR}/../unit_test/      
-        ${CI_PROTOBUF_MSGS_DIR}
-
-	WRAPPERS
-		PBLIB_GetCmdDeserializationFunc
+        ${CMAKE_CURRENT_SOURCE_DIR}/../unit_test/ 
         
     VALGRIND_SUPPRESSION_FILE
         ${CMAKE_CURRENT_SOURCE_DIR}/../unit_test/valgrind.supp
+        
+    REFERENCE_CUSTOM_SOURCE
+        ${CMAKE_CURRENT_SOURCE_DIR}/../tables/ci_config.c
 )
 
-set(CI_PROTOBUF_MSGS_DIR ${CI_PROTOBUF_MSGS_DIR} PARENT_SCOPE)

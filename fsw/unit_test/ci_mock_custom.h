@@ -36,20 +36,19 @@
 
 typedef enum
 {
-	SOCK_ERR,
-	BIND_ERR,
-	NOMINAL
+    SOCK_ERR,
+    BIND_ERR,
+    NOMINAL
 } CI_InitStatus_t;
 
 typedef enum
 {
-	CI_CMD,
-	EXT_STEP_1,
-	EXT_STEP_2,
-	EXT_STEP_2_AUTH,
-	LONG_CMD,
-	INV_CMD,
-	SERIALIZED_CMD
+    CI_CMD,
+    EXT_STEP_1,
+    EXT_STEP_2,
+    EXT_STEP_2_AUTH,
+    LONG_CMD,
+    INV_CMD
 } CI_RecvMsgs_t;
 
 /* Return codes */

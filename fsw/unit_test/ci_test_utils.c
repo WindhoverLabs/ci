@@ -47,12 +47,7 @@
 
 #include <time.h>
 
-/*
- * Config table for testing
- */
-CI_ConfigTblEntry_t CI_configtable = {
-        1 /* iParam*/
-};
+extern CI_ConfigTblEntry_t CI_ConfigTbl;
 
 /*
  * Function Definitions
@@ -73,7 +68,7 @@ void CI_Test_Setup(void)
     Ut_OSAPI_Reset();
     Ut_OSFILEAPI_Reset();
 
-    Ut_CFE_TBL_AddTable(CI_CONFIG_TABLE_FILENAME, (void *) &CI_configtable);
+    Ut_CFE_TBL_AddTable(CI_CONFIG_TABLE_FILENAME, (void *) &CI_ConfigTbl);
 }
 
 void CI_Test_Setup_InitTbls(void)
@@ -91,7 +86,7 @@ void CI_Test_Setup_InitTbls(void)
     Ut_OSAPI_Reset();
     Ut_OSFILEAPI_Reset();
 
-    Ut_CFE_TBL_AddTable(CI_CONFIG_TABLE_FILENAME, (void *) &CI_configtable);
+    Ut_CFE_TBL_AddTable(CI_CONFIG_TABLE_FILENAME, (void *) &CI_ConfigTbl);
 
     CI_InitTbls();
 }

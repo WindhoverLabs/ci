@@ -36,9 +36,65 @@
 
 #include "cfe.h"
 
+/************************************************************************/
+/** \brief Initialize Custom Layer
+**
+**  \par Description
+**       This function initializes the CI custom layer interface.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \returns
+**  CFE_SUCCESS if successfully intitialized, -1 if not.
+**  \endreturns
+**
+*************************************************************************/
 int32 CI_InitCustom(void);
-int32 CI_ReadMessage(char* buffer, uint32* size);
-int32 CI_ReadSerializedMessage(char* buffer, uint32* size);
-int32 CI_CleanupCustom(void);
+
+/************************************************************************/
+/** \brief Read Message
+**
+**  \par Description
+**       This function reads a message from the custom layer interface.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \param [in/out]   buffer        Buffer to fill with read contents
+**                                 
+**  \param [in/out]   size          Read contents size
+**
+*************************************************************************/
+void CI_ReadMessage(uint8* buffer, uint32* size);
+
+/************************************************************************/
+/** \brief Read Serialized Message
+**
+**  \par Description
+**       This function reads a message from the serialized custom layer 
+**       interface.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+**  \param [in/out]   buffer        Buffer to fill with read contents
+**                                 
+**  \param [in/out]   size          Read contents size
+**
+*************************************************************************/
+void CI_ReadSerializedMessage(char* buffer, uint32* size);
+
+/************************************************************************/
+/** \brief Cleanup Custom
+**
+**  \par Description
+**       This function closes interfaces in the custom layer.
+**
+**  \par Assumptions, External Events, and Notes:
+**       None
+**
+*************************************************************************/
+void CI_CleanupCustom(void);
 
 #endif
