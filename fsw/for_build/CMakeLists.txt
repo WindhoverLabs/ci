@@ -59,7 +59,7 @@ buildliner_add_app_def(ci
 
 
 
-buildliner_add_app_def(ci-ut
+buildliner_add_app_unit_test(ci-ut
     UTASSERT
     NO_HELGRIND
     NO_MASSIF
