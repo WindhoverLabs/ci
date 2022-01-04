@@ -10,19 +10,19 @@
   <background_color>
     <color name="Display Background" red="255" green="255" blue="255" />
   </background_color>
-  <boy_version>1.6.9.qualifier</boy_version>
+  <boy_version>1.7.0.202108031936</boy_version>
   <foreground_color>
     <color red="192" green="192" blue="192" />
   </foreground_color>
   <grid_space>6</grid_space>
-  <height>240</height>
+  <height>260</height>
   <macros>
     <include_parent_macros>true</include_parent_macros>
     <CPUID>@BUILDLINER_CDR_CPUID@</CPUID>
 @BUILDLINER_CDR_MACRO_BLOCK@
 @BUILDLINER_CDR_MACRO_BLOCK_CUSTOM@
   </macros>
-  <name>($(CPUID)) CI - Dereg</name>
+  <name>($(CPUID)) CI - Reg</name>
   <rules />
   <scripts>
     <path pathString="../scripts/command_management_init.py" checkConnect="true" seoe="false">
@@ -35,60 +35,10 @@
   <show_ruler>true</show_ruler>
   <snap_to_geometry>true</snap_to_geometry>
   <widget_type>Display</widget_type>
-  <width>400</width>
-  <wuid>4d40612f:17772f0c845:-7d45</wuid>
+  <width>375</width>
+  <wuid>4d40612f:17772f0c845:-7ecd</wuid>
   <x>-1</x>
   <y>-1</y>
-  <widget typeId="org.csstudio.opibuilder.widgets.combo" version="1.0.0">
-    <actions hook="false" hook_all="false" />
-    <alarm_pulsing>false</alarm_pulsing>
-    <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
-    <background_color>
-      <color red="255" green="255" blue="255" />
-    </background_color>
-    <border_alarm_sensitive>false</border_alarm_sensitive>
-    <border_color>
-      <color name="Border" red="240" green="240" blue="240" />
-    </border_color>
-    <border_style>1</border_style>
-    <border_width>1</border_width>
-    <enabled>true</enabled>
-    <font>
-      <opifont.name fontName="Liberation Sans" height="11" style="0" pixels="false">Default</opifont.name>
-    </font>
-    <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
-    <foreground_color>
-      <color red="0" green="0" blue="0" />
-    </foreground_color>
-    <height>32</height>
-    <items />
-    <items_from_pv>false</items_from_pv>
-    <name>msgIdInput</name>
-    <pv_name>loc://$(APP)_$(CPUID)_DeRegisterCommandMsgID_App&lt;VString&gt;</pv_name>
-    <pv_value />
-    <rules />
-    <scale_options>
-      <width_scalable>true</width_scalable>
-      <height_scalable>true</height_scalable>
-      <keep_wh_ratio>false</keep_wh_ratio>
-    </scale_options>
-    <scripts>
-      <path pathString="../scripts/set_msg_id.py" checkConnect="true" seoe="false">
-        <pv trig="true">loc://$(APP)_$(CPUID)_DeRegisterCommandMsgID_App</pv>
-      </path>
-      <path pathString="../scripts/command_management_init.py" checkConnect="true" seoe="false">
-        <pv trig="true">loc://$(APP)_$(CPUID)_DeRegisterCommandMsgID_App</pv>
-      </path>
-    </scripts>
-    <tooltip>$(pv_name)
-$(pv_value)</tooltip>
-    <visible>true</visible>
-    <widget_type>Combo</widget_type>
-    <width>259</width>
-    <wuid>4d40612f:17772f0c845:-7d17</wuid>
-    <x>108</x>
-    <y>42</y>
-  </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
     <actions hook="false" hook_all="false" />
     <auto_size>false</auto_size>
@@ -117,16 +67,16 @@ $(pv_value)</tooltip>
       <keep_wh_ratio>false</keep_wh_ratio>
     </scale_options>
     <scripts />
-    <text>($(CPUID) - $(APP)) CI - Deregister Command</text>
+    <text>($(CPUID) - $(APP)) CI - Register Command</text>
     <tooltip></tooltip>
     <transparent>true</transparent>
     <vertical_alignment>1</vertical_alignment>
     <visible>true</visible>
     <widget_type>Label</widget_type>
-    <width>333</width>
+    <width>313</width>
     <wrap_words>false</wrap_words>
-    <wuid>4d40612f:17772f0c845:-7d16</wuid>
-    <x>16</x>
+    <wuid>4d40612f:17772f0c845:-7e8a</wuid>
+    <x>12</x>
     <y>12</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
@@ -165,52 +115,9 @@ $(pv_value)</tooltip>
     <widget_type>Label</widget_type>
     <width>80</width>
     <wrap_words>false</wrap_words>
-    <wuid>4d40612f:17772f0c845:-7d15</wuid>
+    <wuid>4d40612f:17772f0c845:-7e89</wuid>
     <x>24</x>
     <y>45</y>
-  </widget>
-  <widget typeId="org.csstudio.opibuilder.widgets.combo" version="1.0.0">
-    <actions hook="false" hook_all="false" />
-    <alarm_pulsing>false</alarm_pulsing>
-    <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
-    <background_color>
-      <color red="255" green="255" blue="255" />
-    </background_color>
-    <border_alarm_sensitive>false</border_alarm_sensitive>
-    <border_color>
-      <color name="Border" red="240" green="240" blue="240" />
-    </border_color>
-    <border_style>1</border_style>
-    <border_width>1</border_width>
-    <enabled>true</enabled>
-    <font>
-      <opifont.name fontName="Liberation Sans" height="11" style="0" pixels="false">Default</opifont.name>
-    </font>
-    <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
-    <foreground_color>
-      <color red="0" green="0" blue="0" />
-    </foreground_color>
-    <height>32</height>
-    <items />
-    <items_from_pv>false</items_from_pv>
-    <name>cmdCodeInput</name>
-    <pv_name>loc://$(APP)_$(CPUID)_DeregisterCommandCommandCode_App&lt;VString&gt;</pv_name>
-    <pv_value />
-    <rules />
-    <scale_options>
-      <width_scalable>true</width_scalable>
-      <height_scalable>true</height_scalable>
-      <keep_wh_ratio>false</keep_wh_ratio>
-    </scale_options>
-    <scripts />
-    <tooltip>$(pv_name)
-$(pv_value)</tooltip>
-    <visible>true</visible>
-    <widget_type>Combo</widget_type>
-    <width>259</width>
-    <wuid>4d40612f:17772f0c845:-7d14</wuid>
-    <x>108</x>
-    <y>78</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -248,14 +155,14 @@ $(pv_value)</tooltip>
     <widget_type>Label</widget_type>
     <width>80</width>
     <wrap_words>false</wrap_words>
-    <wuid>4d40612f:17772f0c845:-7d13</wuid>
+    <wuid>4d40612f:17772f0c845:-7e87</wuid>
     <x>24</x>
-    <y>81</y>
+    <y>90</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.ActionButton" version="2.0.0">
     <actions hook="false" hook_all="false">
       <action type="EXECUTE_PYTHONSCRIPT">
-        <path>../scripts/deregister_command_app.py</path>
+        <path>../scripts/register_command_app.py</path>
         <scriptText><![CDATA[from org.csstudio.opibuilder.scriptUtil import PVUtil
 ]]></scriptText>
         <embedded>false</embedded>
@@ -282,7 +189,7 @@ $(pv_value)</tooltip>
       <color red="255" green="255" blue="255" />
     </foreground_color>
     <height>25</height>
-    <image>/Displays/Resources/send.png</image>
+    <image>/Displays/resources/send.png</image>
     <name>Action Button</name>
     <push_action_index>0</push_action_index>
     <pv_name></pv_name>
@@ -295,16 +202,16 @@ $(pv_value)</tooltip>
     </scale_options>
     <scripts />
     <style>0</style>
-    <text>Deregister</text>
+    <text>Register</text>
     <toggle_button>false</toggle_button>
     <tooltip>$(pv_name)
 $(pv_value)</tooltip>
     <visible>true</visible>
     <widget_type>Action Button</widget_type>
     <width>105</width>
-    <wuid>4d40612f:17772f0c845:-7d12</wuid>
-    <x>93</x>
-    <y>198</y>
+    <wuid>4d40612f:17772f0c845:-7e86</wuid>
+    <x>144</x>
+    <y>222</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.combo" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -327,14 +234,14 @@ $(pv_value)</tooltip>
     <foreground_color>
       <color red="0" green="0" blue="0" />
     </foreground_color>
-    <height>32</height>
+    <height>30</height>
     <items>
       <s>STEP_1</s>
       <s>STEP_2</s>
     </items>
     <items_from_pv>false</items_from_pv>
     <name>Step</name>
-    <pv_name>loc://$(APP)_$(CPUID)_DeregisterCommandStep_App&lt;VString&gt;</pv_name>
+    <pv_name>loc://$(APP)_$(CPUID)_RegisterCommandStep_App&lt;VString&gt;</pv_name>
     <pv_value />
     <rules />
     <scale_options>
@@ -348,9 +255,9 @@ $(pv_value)</tooltip>
     <visible>true</visible>
     <widget_type>Combo</widget_type>
     <width>259</width>
-    <wuid>4d40612f:17772f0c845:-7d11</wuid>
+    <wuid>4d40612f:17772f0c845:-7e59</wuid>
     <x>108</x>
-    <y>114</y>
+    <y>132</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -388,9 +295,9 @@ $(pv_value)</tooltip>
     <widget_type>Label</widget_type>
     <width>80</width>
     <wrap_words>false</wrap_words>
-    <wuid>4d40612f:17772f0c845:-7d10</wuid>
+    <wuid>4d40612f:17772f0c845:-7e58</wuid>
     <x>24</x>
-    <y>117</y>
+    <y>138</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.Label" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -428,9 +335,9 @@ $(pv_value)</tooltip>
     <widget_type>Label</widget_type>
     <width>80</width>
     <wrap_words>false</wrap_words>
-    <wuid>4d40612f:17772f0c845:-7d0f</wuid>
+    <wuid>4d40612f:17772f0c845:-7e56</wuid>
     <x>24</x>
-    <y>153</y>
+    <y>186</y>
   </widget>
   <widget typeId="org.csstudio.opibuilder.widgets.combo" version="1.0.0">
     <actions hook="false" hook_all="false" />
@@ -453,14 +360,14 @@ $(pv_value)</tooltip>
     <foreground_color>
       <color red="0" green="0" blue="0" />
     </foreground_color>
-    <height>32</height>
+    <height>30</height>
     <items>
       <s>EXCLUDE</s>
       <s>LOG</s>
     </items>
     <items_from_pv>false</items_from_pv>
     <name>Log</name>
-    <pv_name>loc://$(APP)_$(CPUID)_DeregisterCommandLog_App&lt;VString&gt;</pv_name>
+    <pv_name>loc://$(APP)_$(CPUID)_RegisterCommandLog_App&lt;VString&gt;</pv_name>
     <pv_value />
     <rules />
     <scale_options>
@@ -474,8 +381,101 @@ $(pv_value)</tooltip>
     <visible>true</visible>
     <widget_type>Combo</widget_type>
     <width>259</width>
-    <wuid>4d40612f:17772f0c845:-7d0e</wuid>
+    <wuid>4d40612f:17772f0c845:-7da1</wuid>
     <x>108</x>
-    <y>150</y>
+    <y>180</y>
+  </widget>
+  <widget typeId="org.csstudio.opibuilder.widgets.combo" version="1.0.0">
+    <actions hook="false" hook_all="false" />
+    <alarm_pulsing>false</alarm_pulsing>
+    <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+    <background_color>
+      <color red="255" green="255" blue="255" />
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <border_color>
+      <color name="Border" red="240" green="240" blue="240" />
+    </border_color>
+    <border_style>1</border_style>
+    <border_width>1</border_width>
+    <enabled>true</enabled>
+    <font>
+      <opifont.name fontName="Liberation Sans" height="11" style="0" pixels="false">Default</opifont.name>
+    </font>
+    <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+    <foreground_color>
+      <color red="0" green="0" blue="0" />
+    </foreground_color>
+    <height>30</height>
+    <items />
+    <items_from_pv>false</items_from_pv>
+    <name>msgIdInput</name>
+    <pv_name>loc://$(APP)_$(CPUID)_RegisterCommandMsgID_App&lt;VString&gt;</pv_name>
+    <pv_value />
+    <rules />
+    <scale_options>
+      <width_scalable>true</width_scalable>
+      <height_scalable>true</height_scalable>
+      <keep_wh_ratio>false</keep_wh_ratio>
+    </scale_options>
+    <scripts>
+      <path pathString="../scripts/set_msg_id.py" checkConnect="true" seoe="false">
+        <pv trig="true">loc://$(APP)_$(CPUID)_RegisterCommandMsgID_App</pv>
+      </path>
+      <path pathString="../scripts/command_management_init.py" checkConnect="true" seoe="false">
+        <pv trig="true">loc://$(APP)_$(CPUID)_RegisterCommandMsgID_App</pv>
+      </path>
+    </scripts>
+    <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+    <visible>true</visible>
+    <widget_type>Combo</widget_type>
+    <width>259</width>
+    <wuid>3ad43471:178fa0ca30e:-53db</wuid>
+    <x>108</x>
+    <y>39</y>
+  </widget>
+  <widget typeId="org.csstudio.opibuilder.widgets.combo" version="1.0.0">
+    <actions hook="false" hook_all="false" />
+    <alarm_pulsing>false</alarm_pulsing>
+    <backcolor_alarm_sensitive>false</backcolor_alarm_sensitive>
+    <background_color>
+      <color red="255" green="255" blue="255" />
+    </background_color>
+    <border_alarm_sensitive>false</border_alarm_sensitive>
+    <border_color>
+      <color name="Border" red="240" green="240" blue="240" />
+    </border_color>
+    <border_style>1</border_style>
+    <border_width>1</border_width>
+    <enabled>true</enabled>
+    <font>
+      <opifont.name fontName="Liberation Sans" height="11" style="0" pixels="false">Default</opifont.name>
+    </font>
+    <forecolor_alarm_sensitive>false</forecolor_alarm_sensitive>
+    <foreground_color>
+      <color red="0" green="0" blue="0" />
+    </foreground_color>
+    <height>30</height>
+    <items />
+    <items_from_pv>false</items_from_pv>
+    <name>cmdCodeInput</name>
+    <pv_name>loc://$(APP)_$(CPUID)_RegisterCommandCommandCode&lt;VString&gt;</pv_name>
+    <pv_value />
+    <rules />
+    <scale_options>
+      <width_scalable>true</width_scalable>
+      <height_scalable>true</height_scalable>
+      <keep_wh_ratio>false</keep_wh_ratio>
+    </scale_options>
+    <scripts />
+    <tooltip>$(pv_name)
+$(pv_value)</tooltip>
+    <visible>true</visible>
+    <widget_type>Combo</widget_type>
+    <width>259</width>
+    <wuid>3ad43471:178fa0ca30e:-53da</wuid>
+    <x>108</x>
+    <y>84</y>
   </widget>
 </display>
